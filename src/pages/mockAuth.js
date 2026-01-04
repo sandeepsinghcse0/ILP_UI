@@ -3,7 +3,9 @@ export const mockUser = {
   mobile: "9999999999",
   password: "123456",
   otp: "1111",
-  name: "Test User"
+  name: "Test User",
+  postalcode:'223221',
+  adresss:'bh-26'
 };
 
 export const districts = ['Anjaw', 'Bichom', 'Changlang', 'Dibang Valley', 'East Kameng', 'East Siang', 'Kamle', 'Keyi Panyor', 'Kra Daadi', 'Kurung Kumey', 'Leparada', 'Lohit', 'Longding', 'Lower Dibang Valley', 'Lower Siang', 'Lower Subansiri', 'Namsai', 'Pakke Kessang', 'Papum parent', 'Shi Yomi', 'Siang', 'Tawang', 'Tirap', 'Upper Siang', 'Upper Subansiri', 'West Kameng', 'West Siang'];
