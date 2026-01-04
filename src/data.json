@@ -1,0 +1,17 @@
+{
+    "login": {
+        "username": "user",
+        "password": "pass"
+    },
+    "otp": "123456",
+    "details": {
+        "email": "user@example.com",
+        "phone": "9872473274",
+        "careof": "John Doe",
+        "houseno": "123",
+        "street": "Main St",
+        "landmark": "Near Central Park",
+        "zipcode": "10001"
+    }
+
+}
