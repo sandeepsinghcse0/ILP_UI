@@ -3,5 +3,6 @@ export const mockUser = {
   mobile: "9999999999",
   password: "123456",
   otp: "1111",
-  name: "Test User"
+  name: "Test User",
+  postalcode:'223221'
 };
