@@ -1,4 +1,4 @@
-import { useState, useEffect  } from "react";
+import { useState, useEffect } from "react";
 
 function ApplyILP() {
   const [form, setForm] = useState({
@@ -8,7 +8,11 @@ function ApplyILP() {
     address: "",
     gender: "",
     citizenship: "",
-    aadhaar: ""
+    aadhaar: "",
+    dob: "",
+    state: "",
+    district: "",
+    pincode: ""
   });
 
   const [message, setMessage] = useState("");
@@ -17,21 +21,25 @@ function ApplyILP() {
 
   useEffect(() => {
     if (user) {
-      setForm({
-        ...form,
+      setForm((prev) => ({
+        ...prev,
         name: user.name || "",
         mobile: user.mobile || "",
         email: user.email || "",
-        address: user.addresses?.[0]?.line1 || ""
-      });
+        address: user.addresses?.[0]?.line1 || "",
+        state: user.addresses?.[0]?.state || "",
+        district: user.addresses?.[0]?.district || "",
+        pincode: user.addresses?.[0]?.pincode || ""
+      }));
     }
   }, []);
 
   const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleSubmit = (e) => {
@@ -46,13 +54,9 @@ function ApplyILP() {
     }
 
     // Save mock ILP application
-    const existing =
-      JSON.parse(localStorage.getItem("ilpApplications")) || [];
+    const existing = JSON.parse(localStorage.getItem("ilpApplications")) || [];
 
-    localStorage.setItem(
-      "ilpApplications",
-      JSON.stringify([...existing, form])
-    );
+    localStorage.setItem("ilpApplications", JSON.stringify([...existing, form]));
 
     setMessage("ILP Application submitted successfully!");
 
@@ -62,8 +66,12 @@ function ApplyILP() {
       email: "",
       address: "",
       gender: "",
-      citizenship: "",
-      aadhaar: ""
+      citizenship: "Indian",
+      aadhaar: "",
+      dob: "",
+      state: "",
+      district: "",
+      pincode: ""
     });
   };
 
@@ -96,12 +104,13 @@ function ApplyILP() {
           style={styles.input}
         />
 
-        <textarea
-          name="address"
-          placeholder="Full Address"
-          value={form.address}
+        <input
+          name="dob"
+          type="date"
+          placeholder="Date of Birth"
+          value={form.dob}
           onChange={handleChange}
-          style={styles.textarea}
+          style={styles.input}
         />
 
         <select
@@ -115,6 +124,38 @@ function ApplyILP() {
           <option value="Female">Female</option>
           <option value="Other">Other</option>
         </select>
+
+        <textarea
+          name="address"
+          placeholder="Full Address"
+          value={form.address}
+          onChange={handleChange}
+          style={styles.textarea}
+        />
+
+        <input
+          name="state"
+          placeholder="State"
+          value={form.state}
+          onChange={handleChange}
+          style={styles.input}
+        />
+
+        <input
+          name="district"
+          placeholder="District"
+          value={form.district}
+          onChange={handleChange}
+          style={styles.input}
+        />
+
+        <input
+          name="pincode"
+          placeholder="Pincode"
+          value={form.pincode}
+          onChange={handleChange}
+          style={styles.input}
+        />
 
         <input
           name="citizenship"
@@ -132,11 +173,11 @@ function ApplyILP() {
           style={styles.input}
         />
 
-        {message && <p style={styles.message}>{message}</p>}
-
         <button type="submit" style={styles.button}>
           Submit Application
         </button>
+
+        {message && <p style={styles.message}>{message}</p>}
       </form>
     </div>
   );
