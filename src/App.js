@@ -8,6 +8,8 @@ import ApplyILP from "./pages/ApplyILP";
 import TouristPlaces from "./pages/TouristPlaces";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
+import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./pages/AdminDashboard";
 // import FamilyDetails from "./pages/FamilyDetails";
 
 function App() {
@@ -24,6 +26,8 @@ function App() {
           <Route path="/apply-ilp" element={<ApplyILP />} />
           {/* <Route path="/family-details" element={<FamilyDetails />} /> */}
           <Route path="/tourist-places" element={<TouristPlaces />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
+<Route path="/admin-dashboard" element={<AdminDashboard />} />
         </Routes>
       </main>
 
