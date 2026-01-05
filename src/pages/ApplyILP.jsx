@@ -62,6 +62,12 @@ function ApplyILP() {
       { name: "", relation: "", age: "" }
     ]);
   };
+  
+  //(REMOVE LOGIC)
+  const removeFamilyMember = (index) => {
+  const updated = familyMembers.filter((_, i) => i !== index);
+  setFamilyMembers(updated);
+};
 
   // 🔹 SUBMIT FORM
   const handleSubmit = (e) => {
@@ -231,7 +237,15 @@ function ApplyILP() {
             <h4>Family Members Details</h4>
 
             {familyMembers.map((member, index) => (
-              <div key={index}>
+              <div
+                key={index}
+                style={{
+                  border: "1px solid #ddd",
+                  padding: 10,
+                  marginBottom: 10,
+                  borderRadius: 4
+                }}
+              >
                 <input
                   name="name"
                   placeholder="Name"
@@ -255,8 +269,25 @@ function ApplyILP() {
                   onChange={(e) => handleFamilyChange(index, e)}
                   style={styles.input}
                 />
-              </div>
-            ))}
+                {familyMembers.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeFamilyMember(index)}
+                    style={{
+                      background: "#ff4d4d",
+                      color: "#fff",
+                      border: "none",
+                      padding: "6px 10px",
+                      marginTop: 5,
+                      cursor: "pointer",
+                      borderRadius: 4
+                    }}
+                  >
+                    Remove
+                  </button>
+                )}
+                </div>
+              ))}
 
             <button type="button" onClick={addFamilyMember}>
               + Add Another Family Member
