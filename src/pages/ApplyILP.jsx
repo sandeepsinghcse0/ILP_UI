@@ -16,6 +16,11 @@ function ApplyILP() {
   });
 
   const [message, setMessage] = useState("");
+  const [withFamily, setWithFamily] = useState(false);
+
+  const [familyMembers, setFamilyMembers] = useState([
+    { name: "", relation: "", age: "" }
+  ]);
 
   const user = JSON.parse(localStorage.getItem("user"));
 
@@ -34,6 +39,7 @@ function ApplyILP() {
     }
   }, []);
 
+  // 🔹 HANDLE MAIN FORM CHANGE
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({
@@ -42,10 +48,25 @@ function ApplyILP() {
     }));
   };
 
+  // 🔹 HANDLE FAMILY FORM CHANGE
+  const handleFamilyChange = (index, e) => {
+    const updated = [...familyMembers];
+    updated[index][e.target.name] = e.target.value;
+    setFamilyMembers(updated);
+  };
+
+  // 🔹 ADD FAMILY MEMBER
+  const addFamilyMember = () => {
+    setFamilyMembers([
+      ...familyMembers,
+      { name: "", relation: "", age: "" }
+    ]);
+  };
+
+  // 🔹 SUBMIT FORM
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Basic validation
     for (let key in form) {
       if (!form[key]) {
         setMessage("All fields are required");
@@ -53,10 +74,28 @@ function ApplyILP() {
       }
     }
 
-    // Save mock ILP application
-    const existing = JSON.parse(localStorage.getItem("ilpApplications")) || [];
+    if (withFamily) {
+      for (let member of familyMembers) {
+        if (!member.name || !member.relation || !member.age) {
+          setMessage("Please fill all family member details");
+          return;
+        }
+      }
+    }
 
-    localStorage.setItem("ilpApplications", JSON.stringify([...existing, form]));
+    const existing =
+      JSON.parse(localStorage.getItem("ilpApplications")) || [];
+
+    const applicationData = {
+      ...form,
+      withFamily,
+      familyMembers: withFamily ? familyMembers : []
+    };
+
+    localStorage.setItem(
+      "ilpApplications",
+      JSON.stringify([...existing, applicationData])
+    );
 
     setMessage("ILP Application submitted successfully!");
 
@@ -73,6 +112,9 @@ function ApplyILP() {
       district: "",
       pincode: ""
     });
+
+    setWithFamily(false);
+    setFamilyMembers([{ name: "", relation: "", age: "" }]);
   };
 
   return (
@@ -172,6 +214,57 @@ function ApplyILP() {
           onChange={handleChange}
           style={styles.input}
         />
+
+        {/* FAMILY OPTION */}
+        <label style={{ display: "block", marginTop: 15 }}>
+          <input
+            type="checkbox"
+            checked={withFamily}
+            onChange={() => setWithFamily(!withFamily)}
+          />{" "}
+          I am travelling with my family
+        </label>
+
+        {/* FAMILY MEMBERS FORM */}
+        {withFamily && (
+          <div style={{ marginTop: 15, borderTop: "1px solid #ccc", paddingTop: 10 }}>
+            <h4>Family Members Details</h4>
+
+            {familyMembers.map((member, index) => (
+              <div key={index}>
+                <input
+                  name="name"
+                  placeholder="Name"
+                  value={member.name}
+                  onChange={(e) => handleFamilyChange(index, e)}
+                  style={styles.input}
+                />
+
+                <input
+                  name="relation"
+                  placeholder="Relation"
+                  value={member.relation}
+                  onChange={(e) => handleFamilyChange(index, e)}
+                  style={styles.input}
+                />
+
+                <input
+                  name="age"
+                  placeholder="Age"
+                  value={member.age}
+                  onChange={(e) => handleFamilyChange(index, e)}
+                  style={styles.input}
+                />
+              </div>
+            ))}
+
+            <button type="button" onClick={addFamilyMember}>
+              + Add Another Family Member
+            </button>
+          </div>
+        )}
+
+        {message && <p style={styles.message}>{message}</p>}
 
         <button type="submit" style={styles.button}>
           Submit Application

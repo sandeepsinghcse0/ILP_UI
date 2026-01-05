@@ -8,6 +8,7 @@ import ApplyILP from "./pages/ApplyILP";
 import TouristPlaces from "./pages/TouristPlaces";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
+// import FamilyDetails from "./pages/FamilyDetails";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/apply-ilp" element={<ApplyILP />} />
+          {/* <Route path="/family-details" element={<FamilyDetails />} /> */}
           <Route path="/tourist-places" element={<TouristPlaces />} />
         </Routes>
       </main>
