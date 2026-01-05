@@ -5,11 +5,11 @@ function ApplyILP() {
     name: "",
     mobile: "",
     email: "",
-    address: "",
     gender: "",
-    citizenship: "",
-    aadhaar: "",
     dob: "",
+    citizenship: "Indian",
+    aadhaar: "",
+    address: "",
     state: "",
     district: "",
     pincode: ""
@@ -30,21 +30,15 @@ function ApplyILP() {
         ...prev,
         name: user.name || "",
         mobile: user.mobile || "",
-        email: user.email || "",
-        address: user.addresses?.[0]?.line1 || "",
-        state: user.addresses?.[0]?.state || "",
-        district: user.addresses?.[0]?.district || "",
-        pincode: user.addresses?.[0]?.pincode || ""
+        email: user.email || ""
       }));
     }
   }, []);
 
-  // MAIN FORM CHANGE
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // FAMILY FORM CHANGE
   const handleFamilyChange = (index, e) => {
     const updated = [...familyMembers];
     updated[index][e.target.name] = e.target.value;
@@ -81,15 +75,12 @@ function ApplyILP() {
     const existing =
       JSON.parse(localStorage.getItem("ilpApplications")) || [];
 
-    const applicationData = {
-      ...form,
-      withFamily,
-      familyMembers: withFamily ? familyMembers : []
-    };
-
     localStorage.setItem(
       "ilpApplications",
-      JSON.stringify([...existing, applicationData])
+      JSON.stringify([
+        ...existing,
+        { ...form, withFamily, familyMembers }
+      ])
     );
 
     setMessage("ILP Application submitted successfully!");
@@ -98,11 +89,11 @@ function ApplyILP() {
       name: "",
       mobile: "",
       email: "",
-      address: "",
       gender: "",
+      dob: "",
       citizenship: "Indian",
       aadhaar: "",
-      dob: "",
+      address: "",
       state: "",
       district: "",
       pincode: ""
@@ -116,14 +107,12 @@ function ApplyILP() {
     <div style={styles.page}>
       <div style={styles.card}>
         <h2 style={styles.heading}>Apply for Inner Line Permit (ILP)</h2>
-        <p>Personal Details</p>
 
         <form onSubmit={handleSubmit}>
+          {/* PERSONAL DETAILS */}
           <input name="name" placeholder="Full Name" value={form.name} onChange={handleChange} style={styles.input} />
           <input name="mobile" placeholder="Mobile Number" value={form.mobile} onChange={handleChange} style={styles.input} />
           <input name="email" placeholder="Email Address" value={form.email} onChange={handleChange} style={styles.input} />
-
-          <textarea name="address" placeholder="Full Address" value={form.address} onChange={handleChange} style={styles.textarea} />
 
           <select name="gender" value={form.gender} onChange={handleChange} style={styles.input}>
             <option value="">Select Gender</option>
@@ -132,64 +121,23 @@ function ApplyILP() {
             <option>Other</option>
           </select>
 
-        <input
-          name="dob"
-          type="date"
-          placeholder="Date of Birth"
-          value={form.dob}
-          onChange={handleChange}
-          style={styles.input}
-        />
-          <input name="citizenship" placeholder="Citizenship" value={form.citizenship} onChange={handleChange} style={styles.input} />
+          <input type="date" name="dob" value={form.dob} onChange={handleChange} style={styles.input} />
           <input name="aadhaar" placeholder="Aadhaar Number" value={form.aadhaar} onChange={handleChange} style={styles.input} />
+          <input name="citizenship" value={form.citizenship} readOnly style={styles.input} />
 
-          <label style={{ marginTop: 15, display: "block" }}>
-            <input type="checkbox" checked={withFamily} onChange={() => setWithFamily(!withFamily)} /> I am travelling with my family
+          {/* ADDRESS */}
+          <textarea name="address" placeholder="Full Address" value={form.address} onChange={handleChange} style={styles.textarea} />
+          <input name="state" placeholder="State" value={form.state} onChange={handleChange} style={styles.input} />
+          <input name="district" placeholder="District" value={form.district} onChange={handleChange} style={styles.input} />
+          <input name="pincode" placeholder="Pincode" value={form.pincode} onChange={handleChange} style={styles.input} />
+
+          {/* FAMILY */}
+          <label style={{ display: "block", marginTop: 15 }}>
+            <input type="checkbox" checked={withFamily} onChange={() => setWithFamily(!withFamily)} /> Travelling with family
           </label>
 
-        <textarea
-          name="address"
-          placeholder="Full Address"
-          value={form.address}
-          onChange={handleChange}
-          style={styles.textarea}
-        />
-
-        <input
-          name="state"
-          placeholder="State"
-          value={form.state}
-          onChange={handleChange}
-          style={styles.input}
-        />
-
-        <input
-          name="district"
-          placeholder="District"
-          value={form.district}
-          onChange={handleChange}
-          style={styles.input}
-        />
-
-        <input
-          name="pincode"
-          placeholder="Pincode"
-          value={form.pincode}
-          onChange={handleChange}
-          style={styles.input}
-        />
-
-        <input
-          name="citizenship"
-          placeholder="Citizenship"
-          value={form.citizenship}
-          onChange={handleChange}
-          style={styles.input}
-        />
           {withFamily && (
-            <div style={{ marginTop: 15 }}>
-              <h4>Family Members Details</h4>
-
+            <div>
               {familyMembers.map((member, index) => (
                 <div key={index} style={styles.familyBox}>
                   <input name="name" placeholder="Name" value={member.name} onChange={(e) => handleFamilyChange(index, e)} style={styles.input} />
@@ -205,19 +153,18 @@ function ApplyILP() {
               ))}
 
               <button type="button" onClick={addFamilyMember} style={styles.addBtn}>
-                + Add Another Family Member
+                + Add Family Member
               </button>
             </div>
           )}
 
           {message && <p style={styles.message}>{message}</p>}
 
-        <button type="submit" style={styles.button}>
-          Submit Application
-        </button>
-
-        {message && <p style={styles.message}>{message}</p>}
-      </form>
+          <button type="submit" style={styles.button}>
+            Submit Application
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
@@ -229,7 +176,7 @@ const styles = {
     padding: "40px 0"
   },
   card: {
-    maxWidth: 700,
+    maxWidth: 720,
     margin: "auto",
     background: "#fff",
     padding: 30,
