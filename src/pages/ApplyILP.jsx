@@ -39,37 +39,26 @@ function ApplyILP() {
     }
   }, []);
 
-  // 🔹 HANDLE MAIN FORM CHANGE
+  // MAIN FORM CHANGE
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: value
-    }));
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // 🔹 HANDLE FAMILY FORM CHANGE
+  // FAMILY FORM CHANGE
   const handleFamilyChange = (index, e) => {
     const updated = [...familyMembers];
     updated[index][e.target.name] = e.target.value;
     setFamilyMembers(updated);
   };
 
-  // 🔹 ADD FAMILY MEMBER
   const addFamilyMember = () => {
-    setFamilyMembers([
-      ...familyMembers,
-      { name: "", relation: "", age: "" }
-    ]);
+    setFamilyMembers([...familyMembers, { name: "", relation: "", age: "" }]);
   };
-  
-  //(REMOVE LOGIC)
-  const removeFamilyMember = (index) => {
-  const updated = familyMembers.filter((_, i) => i !== index);
-  setFamilyMembers(updated);
-};
 
-  // 🔹 SUBMIT FORM
+  const removeFamilyMember = (index) => {
+    setFamilyMembers(familyMembers.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -124,33 +113,24 @@ function ApplyILP() {
   };
 
   return (
-    <div style={styles.container}>
-      <h2>Apply for Inner Line Permit (ILP)</h2>
+    <div style={styles.page}>
+      <div style={styles.card}>
+        <h2 style={styles.heading}>Apply for Inner Line Permit (ILP)</h2>
+        <p>Personal Details</p>
 
-      <form onSubmit={handleSubmit}>
-        <input
-          name="name"
-          placeholder="Full Name"
-          value={form.name}
-          onChange={handleChange}
-          style={styles.input}
-        />
+        <form onSubmit={handleSubmit}>
+          <input name="name" placeholder="Full Name" value={form.name} onChange={handleChange} style={styles.input} />
+          <input name="mobile" placeholder="Mobile Number" value={form.mobile} onChange={handleChange} style={styles.input} />
+          <input name="email" placeholder="Email Address" value={form.email} onChange={handleChange} style={styles.input} />
 
-        <input
-          name="mobile"
-          placeholder="Mobile Number"
-          value={form.mobile}
-          onChange={handleChange}
-          style={styles.input}
-        />
+          <textarea name="address" placeholder="Full Address" value={form.address} onChange={handleChange} style={styles.textarea} />
 
-        <input
-          name="email"
-          placeholder="Email Address"
-          value={form.email}
-          onChange={handleChange}
-          style={styles.input}
-        />
+          <select name="gender" value={form.gender} onChange={handleChange} style={styles.input}>
+            <option value="">Select Gender</option>
+            <option>Male</option>
+            <option>Female</option>
+            <option>Other</option>
+          </select>
 
         <input
           name="dob"
@@ -160,18 +140,12 @@ function ApplyILP() {
           onChange={handleChange}
           style={styles.input}
         />
+          <input name="citizenship" placeholder="Citizenship" value={form.citizenship} onChange={handleChange} style={styles.input} />
+          <input name="aadhaar" placeholder="Aadhaar Number" value={form.aadhaar} onChange={handleChange} style={styles.input} />
 
-        <select
-          name="gender"
-          value={form.gender}
-          onChange={handleChange}
-          style={styles.input}
-        >
-          <option value="">Select Gender</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-          <option value="Other">Other</option>
-        </select>
+          <label style={{ marginTop: 15, display: "block" }}>
+            <input type="checkbox" checked={withFamily} onChange={() => setWithFamily(!withFamily)} /> I am travelling with my family
+          </label>
 
         <textarea
           name="address"
@@ -212,90 +186,31 @@ function ApplyILP() {
           onChange={handleChange}
           style={styles.input}
         />
+          {withFamily && (
+            <div style={{ marginTop: 15 }}>
+              <h4>Family Members Details</h4>
 
-        <input
-          name="aadhaar"
-          placeholder="Aadhaar Number"
-          value={form.aadhaar}
-          onChange={handleChange}
-          style={styles.input}
-        />
+              {familyMembers.map((member, index) => (
+                <div key={index} style={styles.familyBox}>
+                  <input name="name" placeholder="Name" value={member.name} onChange={(e) => handleFamilyChange(index, e)} style={styles.input} />
+                  <input name="relation" placeholder="Relation" value={member.relation} onChange={(e) => handleFamilyChange(index, e)} style={styles.input} />
+                  <input name="age" placeholder="Age" value={member.age} onChange={(e) => handleFamilyChange(index, e)} style={styles.input} />
 
-        {/* FAMILY OPTION */}
-        <label style={{ display: "block", marginTop: 15 }}>
-          <input
-            type="checkbox"
-            checked={withFamily}
-            onChange={() => setWithFamily(!withFamily)}
-          />{" "}
-          I am travelling with my family
-        </label>
-
-        {/* FAMILY MEMBERS FORM */}
-        {withFamily && (
-          <div style={{ marginTop: 15, borderTop: "1px solid #ccc", paddingTop: 10 }}>
-            <h4>Family Members Details</h4>
-
-            {familyMembers.map((member, index) => (
-              <div
-                key={index}
-                style={{
-                  border: "1px solid #ddd",
-                  padding: 10,
-                  marginBottom: 10,
-                  borderRadius: 4
-                }}
-              >
-                <input
-                  name="name"
-                  placeholder="Name"
-                  value={member.name}
-                  onChange={(e) => handleFamilyChange(index, e)}
-                  style={styles.input}
-                />
-
-                <input
-                  name="relation"
-                  placeholder="Relation"
-                  value={member.relation}
-                  onChange={(e) => handleFamilyChange(index, e)}
-                  style={styles.input}
-                />
-
-                <input
-                  name="age"
-                  placeholder="Age"
-                  value={member.age}
-                  onChange={(e) => handleFamilyChange(index, e)}
-                  style={styles.input}
-                />
-                {familyMembers.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeFamilyMember(index)}
-                    style={{
-                      background: "#ff4d4d",
-                      color: "#fff",
-                      border: "none",
-                      padding: "6px 10px",
-                      marginTop: 5,
-                      cursor: "pointer",
-                      borderRadius: 4
-                    }}
-                  >
-                    Remove
-                  </button>
-                )}
+                  {familyMembers.length > 1 && (
+                    <button type="button" onClick={() => removeFamilyMember(index)} style={styles.removeBtn}>
+                      Remove
+                    </button>
+                  )}
                 </div>
               ))}
 
-            <button type="button" onClick={addFamilyMember}>
-              + Add Another Family Member
-            </button>
-          </div>
-        )}
+              <button type="button" onClick={addFamilyMember} style={styles.addBtn}>
+                + Add Another Family Member
+              </button>
+            </div>
+          )}
 
-        {message && <p style={styles.message}>{message}</p>}
+          {message && <p style={styles.message}>{message}</p>}
 
         <button type="submit" style={styles.button}>
           Submit Application
@@ -308,33 +223,80 @@ function ApplyILP() {
 }
 
 const styles = {
-  container: {
-    maxWidth: 500,
-    margin: "50px auto",
-    padding: 20,
-    border: "1px solid #ccc",
-    borderRadius: 6
+  page: {
+    background: "#f4f6f9",
+    minHeight: "100vh",
+    padding: "40px 0"
+  },
+  card: {
+    maxWidth: 700,
+    margin: "auto",
+    background: "#fff",
+    padding: 30,
+    borderRadius: 8,
+    boxShadow: "0 4px 12px rgba(0,0,0,0.08)"
+  },
+  heading: {
+    borderBottom: "2px solid #0b5ed7",
+    paddingBottom: 8,
+    marginBottom: 20,
+    color: "#0b5ed7"
   },
   input: {
     width: "100%",
-    padding: 8,
-    margin: "8px 0"
+    padding: 10,
+    margin: "8px 0",
+    borderRadius: 4,
+    border: "1px solid #ccc"
   },
   textarea: {
     width: "100%",
-    padding: 8,
+    padding: 10,
     margin: "8px 0",
+    borderRadius: 4,
+    border: "1px solid #ccc",
     minHeight: 80
+  },
+  familyBox: {
+    border: "1px solid #ddd",
+    padding: 15,
+    borderRadius: 6,
+    marginBottom: 12,
+    background: "#fafafa"
   },
   button: {
     width: "100%",
-    padding: 10,
+    padding: 12,
+    marginTop: 20,
+    background: "#0b5ed7",
+    color: "#fff",
+    border: "none",
+    borderRadius: 5,
+    fontSize: 16,
+    cursor: "pointer"
+  },
+  addBtn: {
     marginTop: 10,
+    background: "#198754",
+    color: "#fff",
+    border: "none",
+    padding: "6px 12px",
+    borderRadius: 4,
+    cursor: "pointer"
+  },
+  removeBtn: {
+    background: "#dc3545",
+    color: "#fff",
+    border: "none",
+    padding: "5px 10px",
+    marginTop: 5,
+    borderRadius: 4,
     cursor: "pointer"
   },
   message: {
+    marginTop: 15,
     color: "green",
-    marginTop: 10
+    fontWeight: 500
   }
 };
 
