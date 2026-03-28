@@ -4,8 +4,19 @@ import img1 from "../assets/image1.png";
 import img2 from "../assets/image2.png";
 import img3 from "../assets/image3.png";
 import img4 from "../assets/image4.png";
+import React, { useEffect, useState } from "react";
+
 
 function Home() {
+
+  const [data, setData] = useState(null);
+  useEffect(() => {
+    fetch("http://localhost:5000/")   // Your backend endpoint
+      .then(response => response.json())
+      .then(json => setData(json))
+      .catch(error => console.error("Error:", error));
+  }, []);
+
   const places = [
     { name: "Tawang", img: img1 },
     { name: "Ziro Valley", img: img2 },
@@ -51,6 +62,11 @@ function Home() {
           </div>
         </div>
       </section>
+      <div>
+        <h1>Users</h1>
+        <div style={{ color: "#000" }}>{data.message}</div>
+      </div>
+
 
       {/* ================= INFO STRIP ================= */}
       <section style={styles.infoStrip}>
