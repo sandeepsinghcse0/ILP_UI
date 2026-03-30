@@ -1,0 +1,39 @@
+.container{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+  background:linear-gradient(to right,#f7e9a3,#c7d6f5);
+}
+
+.formBox{
+  background:white;
+  padding:30px;
+  width:400px;
+  border-radius:10px;
+  box-shadow:0 5px 20px rgba(0,0,0,0.2);
+}
+
+input,select,textarea{
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  border:1px solid #ccc;
+  border-radius:5px;
+}
+
+button{
+  margin-top:15px;
+  padding:10px;
+  width:100%;
+  background:#1976d2;
+  color:white;
+  border:none;
+  border-radius:5px;
+  cursor:pointer;
+}
+
+.error{
+  color:red;
+  font-size:12px;
+}
