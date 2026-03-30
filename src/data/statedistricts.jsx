@@ -4,7 +4,8 @@ export const statesDistricts = {
     "Ghaziabad",
     "Kanpur",
     "Varanasi",
-    "Agra"
+    "Agra",
+    "Balia"
   ],
   Delhi: [
     "New Delhi",
