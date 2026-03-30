@@ -105,11 +105,14 @@ const MemberForm = ({ applicant, aadhaar }) => {
 
       <input name="pincode" placeholder="Pincode" value={member.pincode} onChange={handleChange} />
 
-      <button type="button" onClick={addMember} style={{ marginRight: 8 }}>
-        Add Member
-      </button>
-
-      <button type="button" onClick={handleSubmit}>Submit</button>
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        <button type="button" onClick={addMember}>
+          Add Member
+        </button>
+        <button type="button" onClick={handleSubmit}>
+          Submit
+        </button>
+      </div>
     </div>
   );
 };
