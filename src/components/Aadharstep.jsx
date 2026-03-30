@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-
+import "./styles/form.css"; 
 const AadhaarStep = ({ nextStep }) => {
 const [aadhaar, setAadhaar] = useState("");
 const [error, setError] = useState("");

@@ -11,7 +11,7 @@ import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
-// import FamilyDetails from "./pages/FamilyDetails";
+import FamilyDetails from "./pages/FamilyDetails";
 
 function App() {
   return (
@@ -25,7 +25,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/apply-ilp" element={<ApplyILP />} />
-          {/* <Route path="/family-details" element={<FamilyDetails />} /> */}
+          <Route path="/family" element={<FamilyDetails />} />
           <Route path="/tourist-places" element={<TouristPlaces />} />
           <Route path="/admin-login" element={<AdminLogin />} />
 <Route path="/admin-dashboard" element={<AdminDashboard />} />

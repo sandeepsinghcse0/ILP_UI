@@ -51,7 +51,7 @@ const Form = () => {
     setCurrentMember((prev) => ({ ...prev, district: "" }));
   }, [currentMember.state]);
 
-  // STEP 1
+  // STEP 1 Aadhaar
   const handleAadhaarSubmit = (e) => {
     e.preventDefault();
 
@@ -63,25 +63,54 @@ const Form = () => {
     setStep(2);
   };
 
-  // MAIN FORM
+  // MAIN FORM CHANGE
   const handleMainChange = (e) => {
+    const { name, value } = e.target;
+
+    if (name === "name" && !/^[a-zA-Z\s]*$/.test(value)) return;
+    if (name === "mobile" && !/^[0-9]{0,10}$/.test(value)) return;
+    if (name === "pincode" && !/^[0-9]{0,6}$/.test(value)) return;
+
     setMainForm({
       ...mainForm,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
   };
 
-  // MEMBER FORM
+  // MEMBER CHANGE
   const handleMemberChange = (e) => {
+    const { name, value } = e.target;
+
+    if (name === "name" && !/^[a-zA-Z\s]*$/.test(value)) return;
+    if (name === "mobile" && !/^[0-9]{0,10}$/.test(value)) return;
+    if (name === "pincode" && !/^[0-9]{0,6}$/.test(value)) return;
+    if (name === "aadhar" && !/^[0-9]{0,12}$/.test(value)) return;
+
     setCurrentMember({
       ...currentMember,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
   };
 
-  // GO TO MEMBERS
+  // STEP 2 SUBMIT
   const goToMembers = (e) => {
     e.preventDefault();
+
+    if (!/^\S+@\S+\.\S+$/.test(mainForm.email)) {
+      alert("Enter valid email");
+      return;
+    }
+
+    if (!/^[0-9]{10}$/.test(mainForm.mobile)) {
+      alert("Mobile must be 10 digits");
+      return;
+    }
+
+    if (!/^[0-9]{6}$/.test(mainForm.pincode)) {
+      alert("Pincode must be 6 digits");
+      return;
+    }
+
     setStep(3);
   };
 
@@ -89,6 +118,21 @@ const Form = () => {
   const addMember = () => {
     if (!currentMember.name || !currentMember.mobile) {
       alert("Please fill Name and Mobile");
+      return;
+    }
+
+    if (!/^[0-9]{10}$/.test(currentMember.mobile)) {
+      alert("Mobile must be 10 digits");
+      return;
+    }
+
+    if (!/^\S+@\S+\.\S+$/.test(currentMember.email)) {
+      alert("Enter valid email");
+      return;
+    }
+
+    if (!/^[0-9]{6}$/.test(currentMember.pincode)) {
+      alert("Pincode must be 6 digits");
       return;
     }
 
@@ -121,11 +165,8 @@ const Form = () => {
       JSON.stringify([...existing, data])
     );
 
-    console.log("Submitted Data", data);
-
     alert("Form Submitted Successfully");
 
-    // Reset
     setMainForm(emptyMember);
     setMembers([]);
     setCurrentMember(emptyMember);
@@ -146,7 +187,11 @@ const Form = () => {
             maxLength="12"
             placeholder="Enter 12 digit Aadhaar"
             value={aadhaar}
-            onChange={(e) => setAadhaar(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (!/^[0-9]{0,12}$/.test(value)) return;
+              setAadhaar(value);
+            }}
           />
 
           <button type="submit">Continue</button>
@@ -193,6 +238,7 @@ const Form = () => {
           <input name="pincode" placeholder="Pincode" value={mainForm.pincode} onChange={handleMainChange} />
 
           <button type="submit">Add Members</button>
+          <button type="button" onClick={handleFinalSubmit}>Submit</button>
         </form>
       )}
 
@@ -227,7 +273,6 @@ const Form = () => {
 
           <input value="India" readOnly />
 
-          {/* MEMBER AADHAAR */}
           <input
             name="aadhar"
             placeholder="Member Aadhaar"
@@ -256,7 +301,6 @@ const Form = () => {
 
           <button type="button" onClick={addMember}>Add Member</button>
 
-          {/* MEMBERS LIST */}
           <h3>Added Members:</h3>
           <ul>
             {members.map((m, i) => (
