@@ -160,7 +160,7 @@ const Form = () => {
       return;
     }
 
-    if (members.length >= 5) {
+    if (members.length >= 4) {
       alert("Maximum 5 members allowed");
       return;
     }
@@ -279,7 +279,7 @@ const Form = () => {
       {step === 3 && (
         <div className="formBox">
 
-          <h2>Add Member ({members.length}/5)</h2>
+          <h2>Add Member ({members.length + 1}/5)</h2>
 
           <select name="relation" value={currentMember.relation} onChange={handleMemberChange}>
             <option value="">Select Relation</option>
@@ -334,8 +334,9 @@ const Form = () => {
 
           <button type="button" onClick={addMember}>Add Member</button>
 
-          <h3>Added Members:</h3>
+          <h3>Members:</h3>
           <ul>
+            <li>{mainForm.name} | Main Applicant | {mainForm.mobile} | {aadhaar}</li>
             {members.map((m, i) => (
               <li key={i}>
                 {m.name} | {m.relation} | {m.mobile} | {m.aadhaar}
