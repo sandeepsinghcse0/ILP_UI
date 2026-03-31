@@ -1,15 +1,29 @@
 import React, { useState, useEffect } from "react";
 import "./styles/form.css";
-
-const statesDistricts = {
-  "Uttar Pradesh": ["Lucknow", "Ghaziabad", "Kanpur"],
-  Delhi: ["New Delhi", "North Delhi"],
-  Bihar: ["Patna", "Gaya"],
-};
+import { statesDistricts } from "./data/statedistricts";
 
 const Form = () => {
   const [step, setStep] = useState(1);
   const [aadhaar, setAadhaar] = useState("");
+  const [purpose, setPurpose] = useState("");
+
+  const purposeOptions = [
+  "Tourism",
+  "Business",
+  "Education",
+  "Employment",
+  "Medical Treatment",
+  "Visiting Family or Friends",
+  "Government Work",
+  "Religious Visit",
+  "Conference / Seminar",
+  "Research",
+  "Cultural Event",
+  "Transit",
+  "Adventure / Trekking",
+  "Photography / Media Work",
+  "Other"
+  ];
 
   const emptyMember = {
     relation: "",
@@ -18,7 +32,7 @@ const Form = () => {
     email: "",
     gender: "",
     dob: "",
-    aadhar: "",
+    aadhaar: "",
     citizenship: "India",
     address: "",
     state: "",
@@ -84,7 +98,7 @@ const Form = () => {
     if (name === "name" && !/^[a-zA-Z\s]*$/.test(value)) return;
     if (name === "mobile" && !/^[0-9]{0,10}$/.test(value)) return;
     if (name === "pincode" && !/^[0-9]{0,6}$/.test(value)) return;
-    if (name === "aadhar" && !/^[0-9]{0,12}$/.test(value)) return;
+    if (name === "aadhaar" && !/^[0-9]{0,12}$/.test(value)) return;
 
     setCurrentMember({
       ...currentMember,
@@ -95,6 +109,11 @@ const Form = () => {
   // STEP 2 SUBMIT
   const goToMembers = (e) => {
     e.preventDefault();
+
+    if (!purpose) {
+      alert("Please select a purpose of visit");
+      return;
+    }
 
     if (!/^\S+@\S+\.\S+$/.test(mainForm.email)) {
       alert("Enter valid email");
@@ -136,7 +155,7 @@ const Form = () => {
       return;
     }
 
-    if (!/^[0-9]{12}$/.test(currentMember.aadhar)) {
+    if (!/^[0-9]{12}$/.test(currentMember.aadhaar)) {
       alert("Member Aadhaar must be 12 digits");
       return;
     }
@@ -153,7 +172,7 @@ const Form = () => {
   // FINAL SUBMIT
   const handleFinalSubmit = () => {
     const data = {
-      applicant: { ...mainForm, aadhaar },
+      applicant: { ...mainForm, aadhaar, purpose },
       members,
     };
 
@@ -235,6 +254,20 @@ const Form = () => {
             ))}
           </select>
 
+          {/* Purpose of Visit */}
+           <select
+             value={purpose}
+             onChange={(e) => setPurpose(e.target.value)}
+          >
+           <option value="">Purpose of Visit</option>
+
+             {purposeOptions.map((p) => (
+                <option key={p} value={p}>
+                 {p}
+                </option>
+          ))}
+          </select>
+
           <input name="pincode" placeholder="Pincode" value={mainForm.pincode} onChange={handleMainChange} />
 
           <button type="submit">Add Members</button>
@@ -274,9 +307,9 @@ const Form = () => {
           <input value="India" readOnly />
 
           <input
-            name="aadhar"
+            name="aadhaar"
             placeholder="Member Aadhaar"
-            value={currentMember.aadhar}
+            value={currentMember.aadhaar}
             onChange={handleMemberChange}
             maxLength="12"
           />
@@ -305,7 +338,7 @@ const Form = () => {
           <ul>
             {members.map((m, i) => (
               <li key={i}>
-                {m.name} | {m.relation} | {m.mobile} | {m.aadhar}
+                {m.name} | {m.relation} | {m.mobile} | {m.aadhaar}
               </li>
             ))}
           </ul>
