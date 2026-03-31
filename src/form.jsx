@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "./styles/form.css";
 
 const statesDistricts = {
@@ -29,6 +30,7 @@ const Form = () => {
   const [mainForm, setMainForm] = useState(emptyMember);
   const [members, setMembers] = useState([]);
   const [currentMember, setCurrentMember] = useState(emptyMember);
+  const navigate = useNavigate();
 
   const user = JSON.parse(localStorage.getItem("user"));
 
@@ -164,8 +166,10 @@ const Form = () => {
       "ilpApplications",
       JSON.stringify([...existing, data])
     );
+    localStorage.setItem("lastReview", JSON.stringify(data));
 
     alert("Form Submitted Successfully");
+    navigate("/review");
 
     setMainForm(emptyMember);
     setMembers([]);
