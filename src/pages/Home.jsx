@@ -62,12 +62,6 @@ function Home() {
           </div>
         </div>
       </section>
-      <div>
-        <h1>Users</h1>
-        <div style={{ color: "#000" }}>{data.message}</div>
-      </div>
-
-
       {/* ================= INFO STRIP ================= */}
       <section style={styles.infoStrip}>
         <div style={styles.infoBox}>
