@@ -1,234 +1,121 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import emblem from "../assets/emblem.png";
+import emblem from "../assets/ashok.png";
+import stateLogo from "../assets/logoAPState.png";
+import "./Header.css";
 
 function Header() {
   const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(
-    typeof window !== "undefined" ? window.innerWidth <= 720 : false
-  );
+
+  const [time, setTime] = useState(new Date());
+  const [fontSize, setFontSize] = useState(16);
+  const [theme, setTheme] = useState("#1976d2");
 
   const user =
     JSON.parse(localStorage.getItem("user")) ||
     JSON.parse(localStorage.getItem("registeredUser"));
 
   useEffect(() => {
-    const onResize = () => setIsMobile(window.innerWidth <= 720);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    const interval = setInterval(() => {
+      setTime(new Date());
+    }, 1000);
+    return () => clearInterval(interval);
   }, []);
 
+  // Font Controls
+  const increaseFont = () => setFontSize((f) => f + 2);
+  const decreaseFont = () => setFontSize((f) => f - 2);
+  const resetFont = () => setFontSize(16);
+
+  // Theme
+  const setTheme1 = () => setTheme("#4caf50");
+  const setTheme2 = () => setTheme("#2196f3");
+  const setTheme3 = () => setTheme("#0d47a1");
+
+  // Logout
   const handleLogout = () => {
     localStorage.removeItem("user");
-    setOpen(false);
     navigate("/login");
   };
 
-  const closeMenu = () => setOpen(false);
-  const toggleMenu = () => setOpen((v) => !v);
+  const dateOptions = {
+    weekday: "long",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  };
 
   return (
-    <header style={styles.header}>
-      <div style={styles.left}>
-        <img src={emblem} alt="Emblem" style={styles.logoImg} />
-        <div>
-          <h2 style={styles.title}>Inner Line Permit</h2>
-          <p style={styles.subtitle}>Government of Arunachal Pradesh</p>
+    <div style={{ fontSize: `${fontSize}px` }}>
+      
+      {/* 🔹 TOP BAR */}
+      <div className="accessibility-header" style={{ background: theme }}>
+        <div className="left-section">
+          <span>📅 {time.toLocaleDateString("en-IN", dateOptions)}</span>
+          <span>⏰ {time.toLocaleTimeString()}</span>
+        </div>
+
+        <div className="right-section">
+          <a href="#">Sitemap</a>
+
+          <div className="font-controls">
+            <li>
+            <button onClick={decreaseFont}>A-</button>
+            <button onClick={resetFont}>A</button>
+            <button onClick={increaseFont}>A+</button>
+            </li>
+          </div>
+
+          <div className="theme">
+            <span>Theme</span>
+            <button className="theme1" onClick={setTheme1}>1</button>
+            <button className="theme2" onClick={setTheme2}>2</button>
+            <button className="theme3" onClick={setTheme3}>3</button>
+          </div>
         </div>
       </div>
 
-      {/* Desktop nav */}
-      {!isMobile && (
-        <nav style={styles.nav}>
-          <Link to="/" style={styles.link}>
-            Home
-          </Link>
-          <Link to="/tourist-places" style={styles.link}>
-            Tourist Places
-          </Link>
-          <Link to="/apply-ilp" style={styles.applyBtn}>
-            Apply ILP
-          </Link>
-
-          {!user && (
-            <>
-              <Link to="/login" style={styles.link}>
-                Login
-              </Link>
-              <Link to="/register" style={styles.link}>
-                Register
-              </Link>
-            </>
-          )}
-
-          {user && (
-            <>
-              <Link to="/profile" style={styles.link}>
-                Profile
-              </Link>
-              <button onClick={handleLogout} style={styles.logoutBtn}>
-                Logout
-              </button>
-            </>
-          )}
-        </nav>
-      )}
-
-      {/* Mobile burger */}
-      {isMobile && (
-        <div style={styles.mobileControls}>
-          <button
-            aria-label={open ? "Close menu" : "Open menu"}
-            aria-expanded={open}
-            onClick={toggleMenu}
-            style={styles.burgerBtn}
-          >
-            <span style={styles.burgerLine} />
-            <span style={styles.burgerLine} />
-            <span style={styles.burgerLine} />
-          </button>
+      {/* 🔹 MAIN HEADER */}
+      <div className="mainHeader">
+        <div className="leftLogo">
+          <img src={emblem} alt="India Logo" />
+          <p>📞 155250 (Toll Free)</p>
         </div>
-      )}
 
-      {/* Mobile dropdown */}
-      {isMobile && open && (
-        <nav style={styles.mobileNav} role="menu">
-          <Link to="/" style={styles.mobileLink} onClick={closeMenu}>
-            Home
-          </Link>
-          <Link to="/tourist-places" style={styles.mobileLink} onClick={closeMenu}>
-            Tourist Places
-          </Link>
-          <Link to="/apply-ilp" style={{ ...styles.mobileLink, ...styles.applyBtnMobile }} onClick={closeMenu}>
-            Apply ILP
-          </Link>
+        <div className="centerText">
+          <h1>eILP</h1>
+          <h3>Online Inner Line Permit System</h3>
+          <p>• ONLY FOR INDIAN CITIZENS •</p>
+        </div>
 
-          {!user && (
-            <>
-              <Link to="/login" style={styles.mobileLink} onClick={closeMenu}>
-                Login
-              </Link>
-              <Link to="/register" style={styles.mobileLink} onClick={closeMenu}>
-                Register
-              </Link>
-            </>
-          )}
+        <div className="rightLogo">
+          <img src={stateLogo} alt="State Logo" />
+          <p>📧 nodal[dot]eilp[at]gov[dot]com</p>
+        </div>
+      </div>
 
-          {user && (
-            <>
-              <Link to="/profile" style={styles.mobileLink} onClick={closeMenu}>
-                Profile
-              </Link>
-              <button
-                onClick={() => {
-                  handleLogout();
-                  closeMenu();
-                }}
-                style={{ ...styles.logoutBtn, width: "100%", marginTop: 6 }}
-              >
-                Logout
-              </button>
-            </>
-          )}
-        </nav>
-      )}
-    </header>
+      {/* 🔹 NAVBAR */}
+      <div className="navbar">
+        <button className="tourist">Tourist eILP ⬇</button>
+
+        {!user ? (
+          <>
+            <Link to="/login" className="navBtn">Login</Link>
+            <Link to="/register" className="navBtn">Register</Link>
+          </>
+        ) : (
+          <>
+            <Link to="/profile" className="navBtn">Profile</Link>
+            <button onClick={handleLogout} className="logout">Logout</button>
+          </>
+        )}
+
+        <button className="loginBtn">
+          Login for Print & Payment
+        </button>
+      </div>
+    </div>
   );
 }
-
-const styles = {
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "14px 18px",
-    background: "linear-gradient(90deg, #084298, #0b5ed7)",
-    color: "#fff",
-    position: "relative",
-    zIndex: 50
-  },
-  left: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12
-  },
-  logoImg: {
-    width: 42,
-    height: 52
-  },
-  title: { margin: 0, fontSize: 18 },
-  subtitle: { margin: 0, fontSize: 11 },
-  nav: { display: "flex", gap: 16, alignItems: "center" },
-  link: { color: "#fff", textDecoration: "none", padding: "6px 8px" },
-  applyBtn: {
-    background: "#fff",
-    color: "#0b5ed7",
-    padding: "6px 14px",
-    borderRadius: 4,
-    textDecoration: "none",
-    fontWeight: 600
-  },
-  logoutBtn: {
-    background: "#dc3545",
-    color: "#fff",
-    border: "none",
-    padding: "6px 12px",
-    borderRadius: 4,
-    cursor: "pointer"
-  },
-
-  /* Mobile specific styles */
-  mobileControls: { display: "flex", alignItems: "center" },
-  burgerBtn: {
-    background: "transparent",
-    border: "none",
-    padding: 6,
-    display: "flex",
-    flexDirection: "column",
-    gap: 4,
-    justifyContent: "center",
-    cursor: "pointer"
-  },
-  burgerLine: {
-    width: 22,
-    height: 2,
-    background: "#fff",
-    display: "block",
-    borderRadius: 2
-  },
-  mobileNav: {
-    position: "absolute",
-    top: "100%",
-    right: 14,
-    left: 14,
-    background: "#fff",
-    color: "#0b5ed7",
-    borderRadius: 8,
-    padding: 12,
-    boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-    marginTop: 8
-  },
-  mobileLink: {
-    color: "#0b5ed7",
-    textDecoration: "none",
-    padding: "8px 10px",
-    borderRadius: 6,
-    display: "block",
-    background: "transparent",
-    textAlign: "left"
-  },
-  applyBtnMobile: {
-    background: "#0b5ed7",
-    color: "#fff",
-    padding: "8px 10px",
-    borderRadius: 6,
-    textAlign: "center",
-    fontWeight: 600
-  }
-};
 
 export default Header;

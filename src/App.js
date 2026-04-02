@@ -19,7 +19,6 @@ function App() {
   return (
     <div style={styles.page}>
       <Header />
-
       <main style={styles.content}>
         <Routes>
           <Route path="/" element={<Home />} />
