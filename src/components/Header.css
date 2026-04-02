@@ -1,0 +1,184 @@
+/* 🔹 RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial;
+}
+
+/* 🔹 TOP BAR */
+.accessibility-header {
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 20px;
+  font-size: 14px;
+}
+
+.left-section span {
+  margin-right: 15px;
+}
+
+.right-section {
+  display: flex;
+  align-items: left;
+  gap: 12px;
+}
+
+.right-section a {
+  color: white;
+  text-decoration: none;
+}
+
+/* Font Buttons */
+.font-controls{
+    list-style-type: none;
+}
+.font-controls>li {
+  display: inline-flex;
+  margin-left: 10px;
+}
+.font-controls button {
+  border: none;
+  background: #0d47a1;
+  color: white;
+  padding: 2px 6px;
+  cursor: pointer;
+}
+
+/* Theme Buttons */
+.theme {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.theme button {
+  border: none;
+  padding: 2px 6px;
+  cursor: pointer;
+}
+
+.theme1 { background: #4caf50; color: white; }
+.theme2 { background: #2196f3; color: white; }
+.theme3 { background: #0d47a1; color: white; }
+
+/* 🔹 MAIN HEADER */
+.mainHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f5f5f5;
+  padding: 10px 20px;
+}
+
+/* LEFT */
+.leftLogo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.leftLogo img {
+  width: 50px;
+}
+
+/* CENTER */
+.centerText {
+  text-align: center;
+  flex: 1;
+}
+
+.centerText h1 {
+  color: teal;
+  font-size: 36px;
+}
+
+.centerText h3 {
+  font-size: 16px;
+}
+
+.centerText p {
+  font-size: 12px;
+  color: green;
+}
+
+/* RIGHT */
+.rightLogo {
+  text-align: right;
+}
+
+.rightLogo img {
+  width: 70px;
+}
+
+/* 🔹 NAVBAR */
+.navbar {
+  background: #0d2d52;
+  padding: 8px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tourist {
+  background: #1e73be;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+}
+
+.loginBtn {
+  margin-left: auto; /* push to right */
+  background: #2b7cff;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+}
+
+.navBtn {
+  color: white;
+  text-decoration: none;
+  padding: 6px 10px;
+}
+
+.logout {
+  background: red;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+}
+
+/* 🔹 RESPONSIVE */
+@media (max-width: 768px) {
+
+  .accessibility-header {
+    flex-direction: column;
+    gap: 5px;
+    text-align: center;
+  }
+
+  .mainHeader {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .leftLogo {
+    justify-content: center;
+  }
+
+  .rightLogo {
+    text-align: center;
+  }
+
+  .navbar {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .loginBtn {
+    margin-left: 0;
+  }
+}
