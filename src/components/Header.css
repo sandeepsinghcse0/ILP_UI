@@ -116,10 +116,12 @@
 /* 🔹 NAVBAR */
 .navbar {
   background: #0d2d52;
-  padding: 8px 20px;
+  padding: 8px 10px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 1px;
+  justify-content: end;
+
 }
 
 .tourist {
@@ -134,13 +136,19 @@
   background: #2b7cff;
   color: white;
   border: none;
-  padding: 6px 12px;
+  padding: 6px 10px;
+
 }
 
 .navBtn {
+  background-color: transparent;
   color: white;
+  padding: 5px 5px;
+  margin: 3px;
+  border-radius: 5px;
+  border: none;
   text-decoration: none;
-  padding: 6px 10px;
+  cursor: pointer;
 }
 
 .logout {
