@@ -1,11 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import img1 from "../assets/nilotpal-kalita-IpRIguCAQes-unsplash.jpg";
 import img2 from "../assets/arindam-saha-nAotvDpuklM-unsplash.jpg";
 import img3 from "../assets/mtsjrdl--RIHgVIKjYI-unsplash.jpg";
 import img4 from "../assets/feng2055172-JgtaPIu_4Ow-unsplash.jpg";
 import img5 from "../assets/gaku-suyama-vY0lEGsWOZY-unsplash.jpg";
+
 import "../styles/review.css";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 const getReviewFromStorage = () => {
   const lastReview = localStorage.getItem("lastReview");
@@ -118,11 +121,33 @@ const downloadReviewPdf = (review) => {
   URL.revokeObjectURL(url);
 };
 
+
 function ReviewPage() {
   const [review, setReview] = useState(null);
   const [saved, setSaved] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
   const navigate = useNavigate();
+  const contentRef = useRef(null);
+  const generatePDF = async () => {
+    const element = contentRef.current;
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+    });
+
+    const imgData = canvas.toDataURL("image/png");
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+    });
+
+    const imgWidth = 210;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    doc.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+    doc.save("eILP-Permit.pdf");
+  };
 
   const sliderImages = [img1, img2, img3, img4, img5];
 
@@ -148,9 +173,8 @@ function ReviewPage() {
     setSaved(true);
   };
 
-  const onPrintAndPay = () => {
-    if (!review) return;
-    downloadReviewPdf(review);
+  const onPrintAndPay = async () => {
+    await generatePDF();
   };
 
   const applicant = review?.applicant || {};
@@ -190,7 +214,7 @@ function ReviewPage() {
   }
 
   return (
-    <div className="review-shell">
+    <div ref={contentRef} className="review-shell">
       <div className="review-bg-slider">
         {sliderImages.map((image, index) => (
           <div
