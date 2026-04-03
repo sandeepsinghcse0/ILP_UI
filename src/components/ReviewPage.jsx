@@ -150,7 +150,7 @@ function ReviewPage() {
 
   const onPrintAndPay = () => {
     if (!review) return;
-    downloadReviewPdf(review);
+    navigate("/print-pdf", { state: review });
   };
 
   const applicant = review?.applicant || {};
