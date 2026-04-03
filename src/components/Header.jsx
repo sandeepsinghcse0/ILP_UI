@@ -95,24 +95,22 @@ function Header() {
       </div>
 
       {/* 🔹 NAVBAR */}
-      <div className="navbar">
-        <button className="tourist">Tourist eILP ⬇</button>
+      <div className="navbar" style={{ background: theme }}>
+         <Link to="/" className="navBtn">Home</Link>
+         <Link to="/tourist-places" className="navBtn">Tourist Places</Link>
+         <Link to="/apply-ilp" className="navBtn">Apply for ILP</Link>
 
         {!user ? (
-          <>
-            <Link to="/login" className="navBtn">Login</Link>
-            <Link to="/register" className="navBtn">Register</Link>
-          </>
-        ) : (
-          <>
-            <Link to="/profile" className="navBtn">Profile</Link>
-            <button onClick={handleLogout} className="logout">Logout</button>
+           <>
+           <Link to="/login" className="navBtn">Login</Link>
+           <Link to="/register" className="navBtn">Register</Link>
+           </>
+         ) : (
+           <>
+           <Link to="/profile" className="navBtn">Profile</Link>
+           <button onClick={handleLogout} className="navBtn">Logout</button>
           </>
         )}
-
-        <button className="loginBtn">
-          Login for Print & Payment
-        </button>
       </div>
     </div>
   );
