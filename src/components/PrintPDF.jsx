@@ -4,6 +4,7 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 import "./PrintPDF.css";
 
+
 const PrintPDF = () => {
   const location = useLocation();
   const navigate = useNavigate();
