@@ -71,6 +71,7 @@
   align-items: center;
   background: #f5f5f5;
   padding: 10px 20px;
+  background-image: linear-gradient(to right, rgba(0,0,0,0.329), rgb(224,219,219), grey);
 }
 
 /* LEFT */
@@ -121,7 +122,6 @@
   align-items: center;
   gap: 1px;
   justify-content: end;
-
 }
 
 .tourist {
