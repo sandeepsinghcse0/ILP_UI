@@ -8,7 +8,6 @@ const Form = () => {
   const [step, setStep] = useState(1);
   const [aadhaar, setAadhaar] = useState("");
   const [purpose, setPurpose] = useState("");
-  const [captchaValue, setCaptchaValue] = useState(null);
 
   const purposeOptions = [
     "Tourism",
@@ -114,6 +113,20 @@ const Form = () => {
   const goToMembers = (e) => {
     e.preventDefault();
 
+    if (visitFrom && visitTo && visitTo < visitFrom) {
+      alert("Visit To date cannot be earlier than Visit From date");
+      return;
+    }
+
+    if (vehicleTravel === "Yes") {
+      const vehicleRegex = /^[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{4}$/;
+      
+      if (!vehicleRegex.test(vehicleNumber)) {
+        alert("Enter valid vehicle number (Example: UP65AB1234)");
+        return;
+      }
+    }
+
     if (!purpose) {
       alert("Please select a purpose of visit");
       return;
@@ -181,7 +194,7 @@ const Form = () => {
     }
 
     const data = {
-      applicant: { ...mainForm, aadhaar, purpose },
+      applicant: { ...mainForm, aadhaar, purpose, visitFrom, visitTo, vehicleTravel, vehicleNumber },
       members,
     };
 
@@ -233,10 +246,14 @@ const Form = () => {
         <form className="formBox" onSubmit={goToMembers}>
           <h2>Main Applicant</h2>
 
+          <label className="lable">Name</label>
           <input name="name" placeholder="Name" value={mainForm.name} onChange={handleMainChange} />
+          <label className="lable">Mobile</label>
           <input name="mobile" placeholder="Mobile" value={mainForm.mobile} onChange={handleMainChange} />
+          <label className="lable">Email</label>
           <input name="email" placeholder="Email" value={mainForm.email} onChange={handleMainChange} />
 
+          <label className="lable">Gender</label>
           <select name="gender" value={mainForm.gender} onChange={handleMainChange}>
             <option value="">Gender</option>
             <option>Male</option>
@@ -244,13 +261,19 @@ const Form = () => {
             <option>Other</option>
           </select>
 
+          <label className="lable">Date of Birth</label>
           <input type="date" name="dob" value={mainForm.dob} onChange={handleMainChange} />
 
+          <label className="lable">Nationality</label>
           <input value="India" readOnly />
+          <label className="lable">Aadhaar Number</label>
           <input value={aadhaar} readOnly />
 
+          <label className="lable">Address</label>
           <textarea name="address" placeholder="Address" value={mainForm.address} onChange={handleMainChange} />
 
+          
+          <label className="lable">State</label>
           <select name="state" value={mainForm.state} onChange={handleMainChange}>
             <option value="">Select State</option>
             {Object.keys(statesDistricts).map((s) => (
@@ -258,6 +281,8 @@ const Form = () => {
             ))}
           </select>
 
+          
+          <label className="lable">District</label>
           <select name="district" value={mainForm.district} onChange={handleMainChange}>
             <option value="">Select District</option>
             {statesDistricts[mainForm.state]?.map((d) => (
@@ -265,9 +290,10 @@ const Form = () => {
             ))}
           </select>
 
-          <select
-            value={purpose}
-            onChange={(e) => setPurpose(e.target.value)}
+          {/* Purpose of Visit */}
+           <select
+             value={purpose}
+             onChange={(e) => setPurpose(e.target.value)}
           >
             <option value="">Purpose of Visit</option>
             {purposeOptions.map((p) => (
@@ -276,8 +302,51 @@ const Form = () => {
               </option>
             ))}
           </select>
+          {/* Visit Section */}
+          <label className="lable">Visit Dates</label>
 
+          {/* <div className="visit-section"> */}
+
+            <label className="lable1">From</label>
+            <input
+            type="date"
+            value={visitFrom}
+            onChange={(e) => setVisitFrom(e.target.value)}
+            />
+            
+            <label className="lable1">To</label>
+            <input
+            type="date"
+            value={visitTo}
+            onChange={(e) => setVisitTo(e.target.value)}
+            />
+            
+            {/* </div> */}
+
+          <label className="lable">Pincode</label>
           <input name="pincode" placeholder="Pincode" value={mainForm.pincode} onChange={handleMainChange} />
+
+          {/* Vehicle Section */}
+         <label className="lable">Are you travelling with vehicle?</label>
+         <select
+           value={vehicleTravel}
+           onChange={(e) => setVehicleTravel(e.target.value)}
+              >
+           <option value="N/A">Are you travelling with vehicle</option>
+           <option value="Yes">Yes</option>
+           <option value="N/A">N/A</option>
+           </select>
+
+          {vehicleTravel === "Yes" && (
+            <input
+           type="text"
+           placeholder="Enter Vehicle Number"
+             value={vehicleNumber}
+            onChange={(e) => setVehicleNumber(e.target.value)}
+              />
+                 )}
+
+
 
           <button type="submit">Add Members</button>
 
@@ -296,6 +365,7 @@ const Form = () => {
 
           <h2>Add Member ({members.length + 1}/5)</h2>
 
+          <label className="lable">Relation</label>
           <select name="relation" value={currentMember.relation} onChange={handleMemberChange}>
             <option value="">Select Relation</option>
             <option>Father</option>
@@ -306,10 +376,14 @@ const Form = () => {
             <option>Other</option>
           </select>
 
+          <label className="lable">Name</label>
           <input name="name" placeholder="Name" value={currentMember.name} onChange={handleMemberChange} />
+          <label className="lable">Mobile</label>
           <input name="mobile" placeholder="Mobile" value={currentMember.mobile} onChange={handleMemberChange} />
+          <label className="lable">Email</label>
           <input name="email" placeholder="Email" value={currentMember.email} onChange={handleMemberChange} />
 
+          <label className="lable">Gender</label>
           <select name="gender" value={currentMember.gender} onChange={handleMemberChange}>
             <option value="">Gender</option>
             <option>Male</option>
@@ -317,10 +391,15 @@ const Form = () => {
             <option>Other</option>
           </select>
 
+          <label className="lable">Date of Birth</label>
           <input type="date" name="dob" value={currentMember.dob} onChange={handleMemberChange} />
 
+          
+          <label className="lable">Nationality</label>
           <input value="India" readOnly />
 
+          
+          <label className="lable">Aadhaar</label>
           <input
             name="aadhaar"
             placeholder="Member Aadhaar"
@@ -329,8 +408,12 @@ const Form = () => {
             maxLength="12"
           />
 
+         
+          <label className="lable">Address</label>
           <textarea name="address" placeholder="Address" value={currentMember.address} onChange={handleMemberChange} />
 
+          
+          <label className="lable">State</label>
           <select name="state" value={currentMember.state} onChange={handleMemberChange}>
             <option value="">Select State</option>
             {Object.keys(statesDistricts).map((s) => (
@@ -338,6 +421,8 @@ const Form = () => {
             ))}
           </select>
 
+          
+          <label className="lable">District</label>
           <select name="district" value={currentMember.district} onChange={handleMemberChange}>
             <option value="">Select District</option>
             {statesDistricts[currentMember.state]?.map((d) => (
@@ -345,6 +430,7 @@ const Form = () => {
             ))}
           </select>
 
+          <label className="lable">Pincode</label>
           <input name="pincode" placeholder="Pincode" value={currentMember.pincode} onChange={handleMemberChange} />
 
           <button type="button" onClick={addMember}>Add Member</button>

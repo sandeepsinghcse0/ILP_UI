@@ -10,7 +10,7 @@
   background:white;
   padding:30px 30px 30px 30px;
 
-  width:400px;
+  width:600px;
   border-radius:10px;
   box-shadow:0 5px 20px rgba(0,0,0,0.2);
   align-items: center;
@@ -42,4 +42,77 @@ button{
 .error{
   color:red;
   font-size:12px;
+}
+/* Label Styling */
+.lable{
+  display: block;
+  width: 100%;
+  text-align: left !important;
+  font-weight: 530;
+  font-size: 14px;
+  color: #333;
+  margin-top: 12px;
+  margin-bottom: 4px;
+}
+
+/* All input boxes same size */
+.formBox input,
+.formBox select,
+.formBox textarea{
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+/* Focus effect */
+.formBox input:focus,
+.formBox select:focus,
+.formBox textarea:focus{
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 3px rgba(0,123,255,0.4);
+}
+
+/* Visit section alignment */
+.visit-section{
+  display: flex;
+  gap: 15px;
+}
+
+.visit-section input{
+  flex: 1;
+}
+
+.visit-section{
+  display: block;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+.lable1{
+  display:block;
+  text-align:left !important;
+  width:100%;
+  font-size:14px;
+  font-weight:500;
+  margin-top:10px;
+  margin-bottom:5px;
+  color:#333;
+}
+
+.formBox input[type="date"]{
+  display:block;
+  width:100%;
+  box-sizing:border-box;
+  padding:8px 10px;
+  border:1px solid #ccc;
+  border-radius:6px;
+  margin-bottom:12px;
+}
+
+.formBox{
+  text-align:left;
 }
