@@ -2,28 +2,30 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./styles/form.css";
 import { statesDistricts } from "./data/statedistricts";
+import ReCAPTCHA from "react-google-recaptcha";
 
 const Form = () => {
   const [step, setStep] = useState(1);
   const [aadhaar, setAadhaar] = useState("");
   const [purpose, setPurpose] = useState("");
+  const [captchaValue, setCaptchaValue] = useState(null);
 
   const purposeOptions = [
-  "Tourism",
-  "Business",
-  "Education",
-  "Employment",
-  "Medical Treatment",
-  "Visiting Family or Friends",
-  "Government Work",
-  "Religious Visit",
-  "Conference / Seminar",
-  "Research",
-  "Cultural Event",
-  "Transit",
-  "Adventure / Trekking",
-  "Photography / Media Work",
-  "Other"
+    "Tourism",
+    "Business",
+    "Education",
+    "Employment",
+    "Medical Treatment",
+    "Visiting Family or Friends",
+    "Government Work",
+    "Religious Visit",
+    "Conference / Seminar",
+    "Research",
+    "Cultural Event",
+    "Transit",
+    "Adventure / Trekking",
+    "Photography / Media Work",
+    "Other",
   ];
 
   const emptyMember = {
@@ -57,7 +59,7 @@ const Form = () => {
         email: user.email || "",
       }));
     }
-  }, [user]);
+  }, []);
 
   useEffect(() => {
     setMainForm((prev) => ({ ...prev, district: "" }));
@@ -173,6 +175,11 @@ const Form = () => {
 
   // FINAL SUBMIT
   const handleFinalSubmit = () => {
+    if (!captchaValue) {
+      alert("Please verify reCAPTCHA");
+      return;
+    }
+
     const data = {
       applicant: { ...mainForm, aadhaar, purpose },
       members,
@@ -258,23 +265,27 @@ const Form = () => {
             ))}
           </select>
 
-          {/* Purpose of Visit */}
-           <select
-             value={purpose}
-             onChange={(e) => setPurpose(e.target.value)}
+          <select
+            value={purpose}
+            onChange={(e) => setPurpose(e.target.value)}
           >
-           <option value="">Purpose of Visit</option>
-
-             {purposeOptions.map((p) => (
-                <option key={p} value={p}>
-                 {p}
-                </option>
-          ))}
+            <option value="">Purpose of Visit</option>
+            {purposeOptions.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
           </select>
 
           <input name="pincode" placeholder="Pincode" value={mainForm.pincode} onChange={handleMainChange} />
 
           <button type="submit">Add Members</button>
+
+          <ReCAPTCHA
+            sitekey="6LeWUaYsAAAAAGuiMsz11Pry2dHA2DtrHVle89km"
+            onChange={(value) => setCaptchaValue(value)}
+          />
+
           <button type="button" onClick={handleFinalSubmit}>Submit</button>
         </form>
       )}
