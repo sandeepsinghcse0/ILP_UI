@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./styles/form.css";
 import { statesDistricts } from "./data/statedistricts";
+import ReCAPTCHA from "react-google-recaptcha";
 
 const Form = () => {
   const [step, setStep] = useState(1);
@@ -11,23 +12,24 @@ const Form = () => {
   const [visitTo, setVisitTo] = useState("");
   const [vehicleTravel, setVehicleTravel] = useState("N/A");
   const [vehicleNumber, setVehicleNumber] = useState("");
+  
 
   const purposeOptions = [
-  "Tourism",
-  "Business",
-  "Education",
-  "Employment",
-  "Medical Treatment",
-  "Visiting Family or Friends",
-  "Government Work",
-  "Religious Visit",
-  "Conference / Seminar",
-  "Research",
-  "Cultural Event",
-  "Transit",
-  "Adventure / Trekking",
-  "Photography / Media Work",
-  "Other"
+    "Tourism",
+    "Business",
+    "Education",
+    "Employment",
+    "Medical Treatment",
+    "Visiting Family or Friends",
+    "Government Work",
+    "Religious Visit",
+    "Conference / Seminar",
+    "Research",
+    "Cultural Event",
+    "Transit",
+    "Adventure / Trekking",
+    "Photography / Media Work",
+    "Other",
   ];
 
   const emptyMember = {
@@ -43,6 +45,7 @@ const Form = () => {
     state: "",
     district: "",
     pincode: "",
+    photoDataUrl: "",
   };
 
   const [mainForm, setMainForm] = useState(emptyMember);
@@ -61,7 +64,7 @@ const Form = () => {
         email: user.email || "",
       }));
     }
-  }, [user]);
+  }, []);
 
   useEffect(() => {
     setMainForm((prev) => ({ ...prev, district: "" }));
@@ -95,6 +98,37 @@ const Form = () => {
       ...mainForm,
       [name]: value,
     });
+  };
+
+  const handleMainPhotoChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type?.startsWith("image/")) {
+      alert("Please upload an image file");
+      e.target.value = "";
+      return;
+    }
+
+    // keep localStorage payload reasonable
+    const maxBytes = 1024 * 1024; // 1MB
+    if (file.size > maxBytes) {
+      alert("Image too large. Please upload an image under 1MB.");
+      e.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setMainForm((prev) => ({
+        ...prev,
+        photoDataUrl: typeof reader.result === "string" ? reader.result : "",
+      }));
+    };
+    reader.onerror = () => {
+      alert("Failed to read image. Please try again.");
+    };
+    reader.readAsDataURL(file);
   };
 
   // MEMBER CHANGE
@@ -191,6 +225,7 @@ const Form = () => {
 
   // FINAL SUBMIT
   const handleFinalSubmit = () => {
+   
     const data = {
       applicant: { ...mainForm, aadhaar, purpose, visitFrom, visitTo, vehicleTravel, vehicleNumber },
       members,
@@ -267,6 +302,18 @@ const Form = () => {
           <label className="lable">Aadhaar Number</label>
           <input value={aadhaar} readOnly />
 
+          <label className="lable">Upload Photo</label>
+          <input type="file" accept="image/*" onChange={handleMainPhotoChange} />
+          {mainForm.photoDataUrl ? (
+            <div style={{ marginTop: 8 }}>
+              <img
+                src={mainForm.photoDataUrl}
+                alt="Applicant preview"
+                style={{ width: 110, height: 130, objectFit: "cover", border: "1px solid #bbb" }}
+              />
+            </div>
+          ) : null}
+
           <label className="lable">Address</label>
           <textarea name="address" placeholder="Address" value={mainForm.address} onChange={handleMainChange} />
 
@@ -289,18 +336,16 @@ const Form = () => {
           </select>
 
           {/* Purpose of Visit */}
-          <label className="lable">Purpose of Visit</label>
            <select
              value={purpose}
              onChange={(e) => setPurpose(e.target.value)}
           >
-           <option value="">Purpose of Visit</option>
-
-             {purposeOptions.map((p) => (
-                <option key={p} value={p}>
-                 {p}
-                </option>
-          ))}
+            <option value="">Purpose of Visit</option>
+            {purposeOptions.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
           </select>
           {/* Visit Section */}
           <label className="lable">Visit Dates</label>
@@ -349,6 +394,8 @@ const Form = () => {
 
 
           <button type="submit">Add Members</button>
+
+
           <button type="button" onClick={handleFinalSubmit}>Submit</button>
         </form>
       )}

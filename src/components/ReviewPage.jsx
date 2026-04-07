@@ -1,124 +1,24 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import img1 from "../assets/nilotpal-kalita-IpRIguCAQes-unsplash.jpg";
-import img2 from "../assets/arindam-saha-nAotvDpuklM-unsplash.jpg";
-import img3 from "../assets/mtsjrdl--RIHgVIKjYI-unsplash.jpg";
-import img4 from "../assets/feng2055172-JgtaPIu_4Ow-unsplash.jpg";
-import img5 from "../assets/gaku-suyama-vY0lEGsWOZY-unsplash.jpg";
-
+import apLogo from "../assets/logoAPState.png";
 import "../styles/review.css";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { QRCodeCanvas } from "qrcode.react";
 
-// ─── helpers ────────────────────────────────────────────────────────────────
-
+// ─── Storage helper ──────────────────────────────────────────────────────────
 const getReviewFromStorage = () => {
-  const lastReview = localStorage.getItem("lastReview");
-  if (lastReview) {
-    try {
-      return JSON.parse(lastReview);
-    } catch (error) {
-      return null;
-    }
+  try {
+    const lastReview = localStorage.getItem("lastReview");
+    if (lastReview) return JSON.parse(lastReview);
+    const applications = JSON.parse(localStorage.getItem("ilpApplications")) || [];
+    return applications.length ? applications[applications.length - 1] : null;
+  } catch {
+    return null;
   }
-  const applications =
-    JSON.parse(localStorage.getItem("ilpApplications")) || [];
-  return applications.length ? applications[applications.length - 1] : null;
 };
 
-const escapePdfText = (text) =>
-  String(text)
-    .replace(/\\/g, "\\\\")
-    .replace(/\(/g, "\\(")
-    .replace(/\)/g, "\\)");
-
-const createPdfBlob = (review) => {
-  const applicant = review?.applicant || review || {};
-  const lines = [
-    "Inner Line Permit Review",
-    "",
-    "Applicant Details",
-    `Name: ${applicant.name || "-"}`,
-    `Mobile: ${applicant.mobile || "-"}`,
-    `Email: ${applicant.email || "-"}`,
-    `Gender: ${applicant.gender || "-"}`,
-    `Date of Birth: ${applicant.dob || "-"}`,
-    `Aadhaar: ${applicant.aadhaar || "-"}`,
-    `Citizenship: ${applicant.citizenship || "India"}`,
-    `Address: ${applicant.address || "-"}`,
-    `State: ${applicant.state || "-"}`,
-    `District: ${applicant.district || "-"}`,
-    `Pincode: ${applicant.pincode || "-"}`,
-    "",
-    `Family Members: ${review?.members?.length || 0}`,
-  ];
-
-  review?.members?.forEach((member, index) => {
-    lines.push(`Member ${index + 1}`);
-    lines.push(` Relation: ${member.relation || "-"}`);
-    lines.push(` Name: ${member.name || "-"}`);
-    lines.push(` Mobile: ${member.mobile || "-"}`);
-    lines.push(` Email: ${member.email || "-"}`);
-    lines.push(` Aadhaar: ${member.aadhar || "-"}`);
-    lines.push(` Address: ${member.address || "-"}`);
-    lines.push(` State: ${member.state || "-"}`);
-    lines.push(` District: ${member.district || "-"}`);
-    lines.push(` Pincode: ${member.pincode || "-"}`);
-    lines.push("");
-  });
-
-  const content = lines
-    .map(
-      (line, index) =>
-        `BT /F1 12 Tf 40 ${760 - index * 14} Td (${escapePdfText(line)}) Tj ET`
-    )
-    .join("\n");
-
-  const header = "%PDF-1.4\n";
-  const objects = [];
-  const offsets = [];
-
-  const addObject = (text) => {
-    offsets.push(
-      header.length + objects.reduce((sum, obj) => sum + obj.length, 0)
-    );
-    objects.push(`${objects.length + 1} 0 obj\n${text}\nendobj\n`);
-  };
-
-  addObject("<< /Type /Catalog /Pages 2 0 R >>");
-  addObject("<< /Type /Pages /Kids [3 0 R] /Count 1 >>");
-  addObject(
-    "<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 4 0 R >> >> /MediaBox [0 0 612 792] /Contents 5 0 R >>"
-  );
-  addObject("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>");
-  addObject(`<< /Length ${content.length} >>\nstream\n${content}\nendstream`);
-
-  const xrefOffset =
-    header.length + objects.reduce((sum, obj) => sum + obj.length, 0);
-
-  const xrefLines = ["xref", `0 ${objects.length + 1}`, "0000000000 65535 f "];
-  offsets.forEach((offset) => {
-    xrefLines.push(`${String(offset).padStart(10, "0")} 00000 n `);
-  });
-
-  const xref = xrefLines.join("\n") + "\n";
-  const trailer = `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
-
-  const pdfString = header + objects.join("") + xref + trailer;
-  return new Blob([pdfString], { type: "application/pdf" });
-};
-
-const downloadReviewPdf = (review) => {
-  const blob = createPdfBlob(review);
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = `ILP-Review-${Date.now()}.pdf`;
-  anchor.click();
-  URL.revokeObjectURL(url);
-};
-
-// ─── eILP No generator (deterministic from aadhaar or random) ───────────────
+// ─── eILP number generator ───────────────────────────────────────────────────
 const generateEilpNo = (aadhaar) => {
   if (aadhaar && aadhaar.length >= 8) {
     return `0${aadhaar.slice(0, 3)}${aadhaar.slice(3, 7)}${aadhaar.slice(7, 11)}${aadhaar.slice(-1)}203`;
@@ -126,182 +26,192 @@ const generateEilpNo = (aadhaar) => {
   return `0211245660409203`;
 };
 
-// ─── Barcode SVG (rendered as CSS stripes) ───────────────────────────────────
-const BarcodeStripes = ({ value = "", width = 180, height = 40 }) => {
-  const seed = value.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
-  const bars = [];
-  let x = 0;
-  const totalBars = 60;
-  for (let i = 0; i < totalBars; i++) {
-    const w = ((((seed * (i + 7) * 31) % 17) + 1) / 17) * (width / totalBars) * 1.4;
-    const isBlack = (seed + i * 13) % 3 !== 0;
-    if (isBlack) bars.push({ x: Math.floor(x), w: Math.max(1, Math.floor(w)) });
-    x += w;
+// ─── Real Code 128B Barcode ──────────────────────────────────────────────────
+const C128 = [
+  "11011001100","11001101100","11001100110","10010011000","10010001100",
+  "10001001100","10011001000","10011000100","10001100100","11001001000",
+  "11001000100","11000100100","10110011100","10011011100","10011001110",
+  "10111001100","10011101100","10011100110","11001110010","11001011100",
+  "11001001110","11011100100","11001110100","11101101110","11101001100",
+  "11100101100","11100100110","11101100100","11100110100","11100110010",
+  "11011011000","11011000110","11000110110","10100011000","10001011000",
+  "10001000110","10110001000","10001101000","10001100010","11010001000",
+  "11000101000","11000100010","10110111000","10110001110","10001101110",
+  "10111011000","10111000110","10001110110","11101110110","11010001110",
+  "11000101110","11011101000","11011100010","11011101110","11101011000",
+  "11101000110","11100010110","11101101000","11101100010","11100011010",
+  "11101111010","11001000010","11110001010","10100110000","10100001100",
+  "10010110000","10010000110","10000101100","10000100110","10110010000",
+  "10110000100","10011010000","10011000010","10000110100","10000110010",
+  "11000010010","11001010000","11110111010","11000010100","10001111010",
+  "10100111100","10010111100","10010011110","10111100100","10011110100",
+  "10011110010","11110100100","11110010100","11110010010","11011011110",
+  "11011110110","11110110110","10101111000","10100011110","10001011110",
+  "10111101000","10111100010","11110101000","11110100010","10111011110",
+  "10111101110","11101011110","11110101110","11010000100","11010010000",
+  "11010011100",
+];
+const C128_START_B = "11010010000";
+const C128_STOP    = "1100011101011";
+
+const encodeCode128B = (text) => {
+  const vals = [];
+  for (let i = 0; i < text.length; i++) {
+    const v = text.charCodeAt(i) - 32;
+    if (v >= 0 && v <= 94) vals.push(v);
   }
-  return (
-    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
-      {bars.map((b, i) => (
-        <rect key={i} x={b.x} y={0} width={b.w} height={height} fill="#000" />
-      ))}
-    </svg>
-  );
+  let cs = 104;
+  for (let i = 0; i < vals.length; i++) cs += (i + 1) * vals[i];
+  cs = cs % 103;
+  return [C128_START_B, ...vals.map((v) => C128[v]), C128[cs], C128_STOP].join("");
 };
 
-// ─── QR Code placeholder (checkerboard pattern) ──────────────────────────────
-const QRPlaceholder = ({ size = 70 }) => {
-  const cells = 10;
-  const cell = size / cells;
-  const seed = 8347;
+const BarcodeStripes = ({ value = "", width = 260, height = 46 }) => {
+  const bits = encodeCode128B(value);
+  const quietModules = 10;
+  const totalModules = bits.length + quietModules * 2;
+  const mod = width / totalModules;
+  const offsetX = quietModules * mod;
   const rects = [];
-  for (let r = 0; r < cells; r++) {
-    for (let c = 0; c < cells; c++) {
-      if ((seed * (r + 1) * (c + 3)) % 2 === 0) {
-        rects.push(
-          <rect key={`${r}-${c}`} x={c * cell} y={r * cell} width={cell} height={cell} fill="#000" />
-        );
-      }
+  let idx = 0;
+  while (idx < bits.length) {
+    const bit = bits[idx];
+    let run = 0;
+    while (idx + run < bits.length && bits[idx + run] === bit) run++;
+    if (bit === "1") {
+      rects.push(
+        <rect key={idx} x={offsetX + idx * mod} y={0} width={run * mod} height={height} fill="#000" />
+      );
     }
+    idx += run;
   }
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ border: "2px solid #000" }}>
-      <rect width={size} height={size} fill="#fff" />
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}
+      style={{ display: "block", imageRendering: "crisp-edges" }}>
+      <rect width={width} height={height} fill="#fff" />
       {rects}
     </svg>
   );
 };
 
-// ─── Photo placeholder ───────────────────────────────────────────────────────
-const PhotoPlaceholder = ({ name = "", size = 80 }) => (
+// ─── Photo placeholder ────────────────────────────────────────────────────────
+const PhotoPlaceholder = ({ name = "", size = 90, photoDataUrl = "" }) => (
   <div style={{
-    width: size, height: size + 10,
-    border: "1.5px solid #888",
-    background: "#e8e8e8",
-    display: "flex", flexDirection: "column",
-    alignItems: "center", justifyContent: "center",
-    fontSize: 9, color: "#555", textAlign: "center"
+    width: size, height: size + 10, border: "1.5px solid #888",
+    background: "#e8e8e8", display: "flex", flexDirection: "column",
+    alignItems: "center", justifyContent: "center", fontSize: 9, color: "#555", textAlign: "center",
+    overflow: "hidden",
   }}>
-    <svg width={size * 0.45} height={size * 0.45} viewBox="0 0 40 40" fill="#aaa">
-      <circle cx="20" cy="14" r="9" />
-      <ellipse cx="20" cy="34" rx="15" ry="10" />
-    </svg>
-    <span style={{ fontSize: 8, marginTop: 2 }}>{name.split(" ")[0] || "Photo"}</span>
+    {photoDataUrl ? (
+      <img
+        src={photoDataUrl}
+        alt={name ? `${name} photo` : "Applicant photo"}
+        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+      />
+    ) : (
+      <>
+        <svg width={size * 0.45} height={size * 0.45} viewBox="0 0 40 40" fill="#aaa">
+          <circle cx="20" cy="14" r="9" />
+          <ellipse cx="20" cy="34" rx="15" ry="10" />
+        </svg>
+        <span style={{ fontSize: 8, marginTop: 2 }}>{name.split(" ")[0] || "Photo"}</span>
+      </>
+    )}
   </div>
 );
 
-// ─── Arunachal Pradesh SVG Logo (recreated from emblem shape) ────────────────
-const APLogo = ({ size = 72 }) => (
-  <svg width={size} height={size * 0.75} viewBox="0 0 120 90">
-    {/* Sun rays */}
-    {[...Array(12)].map((_, i) => {
-      const angle = (i * 30 - 90) * (Math.PI / 180);
-      const x1 = 60 + 18 * Math.cos(angle);
-      const y1 = 38 + 18 * Math.sin(angle);
-      const x2 = 60 + 28 * Math.cos(angle);
-      const y2 = 38 + 28 * Math.sin(angle);
-      return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#e87722" strokeWidth="2" />;
-    })}
-    {/* Sun circle */}
-    <circle cx="60" cy="38" r="14" fill="#e87722" />
-    {/* Mountain silhouette */}
-    <polygon points="10,72 35,42 50,58 60,44 70,58 85,42 110,72" fill="#2d6a2d" />
-    <polygon points="10,72 110,72 110,78 10,78" fill="#2d6a2d" />
-    {/* Banner */}
-    <rect x="18" y="76" width="84" height="12" fill="#e87722" rx="1" />
-    <text x="60" y="86" textAnchor="middle" fontSize="7" fontWeight="bold" fill="#fff" fontFamily="serif">
-      ARUNACHAL PRADESH
-    </text>
-    {/* Stars flanking */}
-    <text x="25" y="85" fontSize="6" fill="#fff">★</text>
-    <text x="90" y="85" fontSize="6" fill="#fff">★</text>
-  </svg>
-);
-
-// ─── eILP Permit Card ────────────────────────────────────────────────────────
+// ─── eILP Permit Card (full-width, real logo) ────────────────────────────────
 const EilpPermitCard = ({ review }) => {
   const applicant = review?.applicant || {};
-  const members = review?.members || [];
-  const eilpNo = generateEilpNo(applicant.aadhaar || "");
+  const members   = review?.members  || [];
+  const eilpNo    = generateEilpNo(applicant.aadhaar || "");
+  const issuedOnStr = new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "2-digit", year: "numeric" });
+
+  const qrPayload = JSON.stringify({
+    type: "eILP",
+    no: eilpNo,
+    name: applicant.name || "",
+    issuedOn: issuedOnStr,
+  });
 
   const tdLabel = {
-    fontWeight: "bold",
-    fontSize: 11,
-    padding: "3px 6px",
-    border: "1px solid #bbb",
-    background: "#f7f7f7",
-    whiteSpace: "nowrap",
-    verticalAlign: "top",
-    width: "28%",
+    fontWeight: "bold", fontSize: 11, padding: "4px 8px",
+    border: "1px solid #bbb", background: "#f7f7f7",
+    whiteSpace: "nowrap", verticalAlign: "top", width: "26%",
   };
   const tdValue = {
-    fontSize: 11,
-    padding: "3px 6px",
-    border: "1px solid #bbb",
-    verticalAlign: "top",
+    fontSize: 11, padding: "4px 8px",
+    border: "1px solid #bbb", verticalAlign: "top",
   };
-  const tdLabelSm = { ...tdLabel, fontSize: 10, width: "auto" };
-  const tdValueSm = { ...tdValue, fontSize: 10 };
+  const tdSm  = { ...tdLabel, fontSize: 10, width: "auto" };
+  const tdVSm = { ...tdValue, fontSize: 10 };
 
   return (
     <div style={{
-      width: 620,
-      margin: "0 auto",
-      fontFamily: "Arial, sans-serif",
-      border: "2px solid #aaa",
-      background: "#fff",
-      padding: 0,
+      width: "100%", fontFamily: "Arial, sans-serif",
+      border: "2px solid #aaa", background: "#fff",
       boxSizing: "border-box",
-      pageBreakInside: "avoid",
     }}>
 
-      {/* ── Header ── */}
-      <div style={{ textAlign: "center", padding: "10px 10px 4px", borderBottom: "1px solid #ccc" }}>
-        <APLogo size={80} />
-        <div style={{ fontWeight: "bold", fontSize: 15, color: "#1a3a6b", marginTop: 4 }}>
+      {/* ── Header with real logo ── */}
+      <div style={{
+        textAlign: "center", padding: "14px 12px 8px",
+        borderBottom: "1px solid #ccc",
+        display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+      }}>
+        <img
+          src={apLogo}
+          alt="Arunachal Pradesh State Emblem"
+          style={{ height: 80, width: "auto", objectFit: "contain" }}
+        />
+        <div style={{ fontWeight: "bold", fontSize: 16, color: "#1a3a6b" }}>
           Government of Arunachal Pradesh
         </div>
-        <div style={{ fontSize: 11, color: "#333" }}>
-          (Temporary Group Inner Line Permit for Indian Nationals)
+        <div style={{ fontSize: 12, color: "#333" }}>
+          Temporary Group Inner Line Permit for Indian Nationals
         </div>
       </div>
 
-      {/* ── eILP No + QR + Barcode + Photo row ── */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", borderBottom: "1px solid #ccc", gap: 8 }}>
-        {/* QR */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-          <QRPlaceholder size={68} />
+      {/* ── eILP No + QR + Barcode + Photo ── */}
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "10px 16px", borderBottom: "1px solid #ccc", gap: 12,
+      }}>
+        <div style={{ border: "2px solid #000", padding: 2, background: "#fff" }}>
+          <QRCodeCanvas
+            value={qrPayload}
+            size={80}
+            level="M"
+            includeMargin={false}
+            bgColor="#ffffff"
+            fgColor="#000000"
+          />
         </div>
-
-        {/* Center: eILP No + barcode */}
         <div style={{ flex: 1, textAlign: "center" }}>
-          <div style={{ fontWeight: "bold", fontSize: 14, color: "#1a3a6b" }}>eILP No</div>
-          <div style={{ fontWeight: "bold", fontSize: 18, color: "#cc0000", letterSpacing: 1, margin: "2px 0 6px" }}>
+          <div style={{ fontWeight: "bold", fontSize: 13, color: "#1a3a6b" }}>eILP No</div>
+          <div style={{ fontWeight: "bold", fontSize: 20, color: "#cc0000", letterSpacing: 1, margin: "3px 0 8px" }}>
             {eilpNo}
           </div>
           <div style={{ display: "flex", justifyContent: "center" }}>
-            <BarcodeStripes value={eilpNo} width={200} height={42} />
+            <BarcodeStripes value={eilpNo} width={260} height={46} />
           </div>
         </div>
-
-        {/* Photo */}
-        <PhotoPlaceholder name={applicant.name || ""} size={72} />
+        <PhotoPlaceholder name={applicant.name || ""} size={90} photoDataUrl={applicant.photoDataUrl || ""} />
       </div>
 
       {/* ── Caution banner ── */}
       <div style={{
-        background: "#fffbe6",
-        border: "1.5px solid #e87722",
-        color: "#b34000",
-        fontSize: 10.5,
-        fontWeight: "bold",
-        padding: "5px 10px",
-        margin: "0",
-        lineHeight: 1.4,
+        background: "#fffbe6", border: "1.5px solid #e87722",
+        color: "#b34000", fontSize: 10.5, fontWeight: "bold",
+        padding: "6px 12px", lineHeight: 1.4,
       }}>
-        Caution: Entering the Check Gate of Arunachal Pradesh along with this eILP Pass. You are mandatory to Produce COVID19 Test Report valid for 72 hours on your arrival date or COVID19 Vaccine Completion Certificate
+        Caution: Entering the Check Gate of Arunachal Pradesh along with this eILP Pass. You are mandatory
+        to produce COVID-19 Test Report valid for 72 hours on your arrival date or COVID-19 Vaccine
+        Completion Certificate.
       </div>
 
-      {/* ── Main details table ── */}
-      <table style={{ width: "100%", borderCollapse: "collapse", margin: 0 }}>
+      {/* ── Main applicant table ── */}
+      <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <tbody>
           <tr>
             <td style={tdLabel}>Name</td>
@@ -309,126 +219,121 @@ const EilpPermitCard = ({ review }) => {
           </tr>
           <tr>
             <td style={tdLabel}>Permanent Address</td>
-            <td style={tdValue}>{applicant.address || "-"}{applicant.district ? `, ${applicant.district}` : ""}{applicant.state ? `, ${applicant.state}` : ""}{applicant.pincode ? ` ${applicant.pincode}` : ""}</td>
+            <td style={tdValue}>
+              {[applicant.address, applicant.district, applicant.state, applicant.pincode]
+                .filter(Boolean).join(", ") || "-"}
+            </td>
           </tr>
           <tr>
-            <td style={tdLabel}>Identification mark</td>
+            <td style={tdLabel}>Identification Mark</td>
             <td style={tdValue}>-</td>
           </tr>
           <tr>
-            <td style={tdLabel}>Reference details</td>
+            <td style={tdLabel}>Reference Details</td>
             <td style={tdValue}>{applicant.email || "-"}</td>
           </tr>
         </tbody>
       </table>
 
-      {/* ── 6-column details row ── */}
+      {/* ── 6-column details ── */}
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <tbody>
           <tr>
-            <td style={tdLabelSm}>Gender</td>
-            <td style={tdValueSm}>{applicant.gender || "-"}</td>
-            <td style={tdLabelSm}>Date of birth</td>
-            <td style={tdValueSm}>{applicant.dob || "-"}</td>
-            <td style={tdLabelSm}></td>
-            <td style={tdValueSm}></td>
+            <td style={tdSm}>Gender</td>
+            <td style={tdVSm}>{applicant.gender || "-"}</td>
+            <td style={tdSm}>Date of Birth</td>
+            <td style={tdVSm}>{applicant.dob || "-"}</td>
+            <td style={tdSm}>Mobile</td>
+            <td style={tdVSm}>{applicant.mobile || "-"}</td>
           </tr>
           <tr>
-            <td style={tdLabelSm}>Occupation</td>
-            <td style={tdValueSm}>{applicant.purpose || "-"}</td>
-            <td style={tdLabelSm}>Document Verified</td>
-            <td style={tdValueSm}>Adhar Card</td>
-            <td style={tdLabelSm}></td>
-            <td style={tdValueSm}></td>
+            <td style={tdSm}>Purpose of Visit</td>
+            <td style={tdVSm}>{applicant.purpose || "-"}</td>
+            <td style={tdSm}>Document Verified</td>
+            <td style={tdVSm}>Aadhaar Card</td>
+            <td style={tdSm}>Aadhaar No.</td>
+            <td style={tdVSm}>{applicant.aadhaar || "-"}</td>
           </tr>
           <tr>
-            <td style={tdLabelSm}>Place of visit</td>
-            <td style={tdValueSm}>Arunachal Pradesh</td>
-            <td style={tdLabelSm}>Check Gate</td>
-            <td style={tdValueSm}>-</td>
-            <td style={tdLabelSm}></td>
-            <td style={tdValueSm}></td>
+            <td style={tdSm}>Place of Visit</td>
+            <td style={tdVSm}>Arunachal Pradesh</td>
+            <td style={tdSm}>Check Gate</td>
+            <td style={tdVSm}>-</td>
+            <td style={tdSm}>Citizenship</td>
+            <td style={tdVSm}>{applicant.citizenship || "India"}</td>
           </tr>
           <tr>
-            <td style={tdLabelSm}>Date of visit</td>
-            <td style={tdValueSm}>-</td>
-            <td style={tdLabelSm}>Type of visit</td>
-            <td style={tdValueSm}>{applicant.purpose || "Tourist"}</td>
-            <td style={tdLabelSm}></td>
-            <td style={tdValueSm}></td>
+            <td style={tdSm}>Date of Visit</td>
+            <td style={tdVSm}>{applicant.visitFrom || "-"}</td>
+            <td style={tdSm}>Type of Visit</td>
+            <td style={tdVSm}>{applicant.purpose || "-"}</td>
+            <td style={tdSm}>Date of Return</td>
+            <td style={tdVSm}>{applicant.visitTo || "-"}</td>
           </tr>
           <tr>
-            <td style={tdLabelSm}>Date of return</td>
-            <td style={tdValueSm}>-</td>
-            <td style={tdLabelSm}></td>
-            <td style={tdValueSm}></td>
-            <td style={tdLabelSm}></td>
-            <td style={tdValueSm}></td>
+            <td style={tdSm}>Vehicle Travel</td>
+            <td style={tdVSm}>{applicant.vehicleTravel || "N/A"}</td>
+            <td style={tdSm}>Vehicle Number</td>
+            <td style={tdVSm} colSpan={3}>
+              {applicant.vehicleTravel === "Yes" ? (applicant.vehicleNumber || "-") : "N/A"}
+            </td>
           </tr>
         </tbody>
       </table>
 
-      {/* ── Issue row ── */}
+      {/* ── Issue details ── */}
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <tbody>
           <tr>
-            <td style={tdLabelSm}>Place of Issue</td>
-            <td style={tdValueSm}>DRC Guwahati</td>
-            <td style={tdLabelSm}>Permit Type</td>
-            <td style={tdValueSm}>{members.length > 0 ? "Group" : "Individual"}</td>
+            <td style={tdSm}>Place of Issue</td>
+            <td style={tdVSm}>DRC Guwahati</td>
+            <td style={tdSm}>Permit Type</td>
+            <td style={tdVSm}>{members.length > 0 ? "Group" : "Individual"}</td>
           </tr>
           <tr>
-            <td style={tdLabelSm}>Issuing Authority</td>
-            <td style={tdValueSm}>DRC Guwahati</td>
-            <td style={tdLabelSm}>Date of Issue</td>
-            <td style={tdValueSm}>{new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "2-digit", year: "numeric" })}</td>
+            <td style={tdSm}>Issuing Authority</td>
+            <td style={tdVSm}>DRC Guwahati</td>
+            <td style={tdSm}>Date of Issue</td>
+            <td style={tdVSm}>
+              {issuedOnStr}
+            </td>
           </tr>
         </tbody>
       </table>
 
-      {/* ── Group Member Details ── */}
+      {/* ── Group members ── */}
       <div style={{
-        fontWeight: "bold",
-        fontSize: 12,
-        padding: "4px 8px",
-        borderTop: "1.5px solid #aaa",
-        borderBottom: members.length ? "none" : "none",
-        background: "#f0f4ff",
+        fontWeight: "bold", fontSize: 12, padding: "5px 10px",
+        borderTop: "1.5px solid #aaa", background: "#f0f4ff",
       }}>
         Group Member Details
       </div>
 
-      {members.length > 0 && (
+      {members.length > 0 ? (
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 10 }}>
           <thead>
             <tr style={{ background: "#dde6f5" }}>
-              <th style={{ ...tdLabelSm, textAlign: "center" }}>#</th>
-              <th style={{ ...tdLabelSm }}>Name</th>
-              <th style={{ ...tdLabelSm }}>Relation</th>
-              <th style={{ ...tdLabelSm }}>Gender</th>
-              <th style={{ ...tdLabelSm }}>DOB</th>
-              <th style={{ ...tdLabelSm }}>Aadhaar</th>
-              <th style={{ ...tdLabelSm }}>Address</th>
+              {["#","Name","Relation","Gender","DOB","Aadhaar","Address"].map((h) => (
+                <th key={h} style={{ ...tdSm, textAlign: h === "#" ? "center" : "left" }}>{h}</th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {members.map((m, i) => (
               <tr key={i}>
-                <td style={{ ...tdValueSm, textAlign: "center" }}>{i + 1}</td>
-                <td style={tdValueSm}>{m.name || "-"}</td>
-                <td style={tdValueSm}>{m.relation || "-"}</td>
-                <td style={tdValueSm}>{m.gender || "-"}</td>
-                <td style={tdValueSm}>{m.dob || "-"}</td>
-                <td style={tdValueSm}>{m.aadhaar || m.aadhar || "-"}</td>
-                <td style={tdValueSm}>{m.address || "-"}{m.state ? `, ${m.state}` : ""}</td>
+                <td style={{ ...tdVSm, textAlign: "center" }}>{i + 1}</td>
+                <td style={tdVSm}>{m.name || "-"}</td>
+                <td style={tdVSm}>{m.relation || "-"}</td>
+                <td style={tdVSm}>{m.gender || "-"}</td>
+                <td style={tdVSm}>{m.dob || "-"}</td>
+                <td style={tdVSm}>{m.aadhaar || m.aadhar || "-"}</td>
+                <td style={tdVSm}>{[m.address, m.state].filter(Boolean).join(", ") || "-"}</td>
               </tr>
             ))}
           </tbody>
         </table>
-      )}
-
-      {members.length === 0 && (
-        <div style={{ fontSize: 10, color: "#888", padding: "4px 8px", borderTop: "1px solid #ddd" }}>
+      ) : (
+        <div style={{ fontSize: 10, color: "#888", padding: "5px 10px", borderTop: "1px solid #ddd" }}>
           No group members added.
         </div>
       )}
@@ -436,70 +341,18 @@ const EilpPermitCard = ({ review }) => {
   );
 };
 
-
-// ─── Main ReviewPage ─────────────────────────────────────────────────────────
-
+// ─── Main ReviewPage ──────────────────────────────────────────────────────────
 function ReviewPage() {
-  const [review, setReview] = useState(null);
-  const [saved, setSaved] = useState(false);
-  const [activeSlide, setActiveSlide] = useState(0);
-  const [showPermit, setShowPermit] = useState(false);
-  const navigate = useNavigate();
-  const contentRef = useRef(null);
+  const [review, setReview]   = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saved, setSaved]     = useState(false);
+  const navigate  = useNavigate();
   const permitRef = useRef(null);
-
-  const generatePDF = async () => {
-    const element = contentRef.current;
-    const canvas = await html2canvas(element, {
-      scale: 2,
-      useCORS: true,
-      logging: false,
-    });
-    const imgData = canvas.toDataURL("image/png");
-    const doc = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4",
-    });
-    const imgWidth = 210;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    doc.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-    doc.save("eILP-Permit.pdf");
-  };
-
-  // Render only the permit card as PDF (cleaner output)
-  const generatePermitPDF = async () => {
-    if (!permitRef.current) return;
-    const canvas = await html2canvas(permitRef.current, {
-      scale: 3,
-      useCORS: true,
-      logging: false,
-      backgroundColor: "#ffffff",
-    });
-    const imgData = canvas.toDataURL("image/png");
-    const doc = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4",
-    });
-    const imgWidth = 210;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    doc.addImage(imgData, "PNG", 0, 0, imgWidth, Math.min(imgHeight, 297));
-    doc.save(`eILP-${Date.now()}.pdf`);
-  };
-
-  const sliderImages = [img1, img2, img3, img4, img5];
 
   useEffect(() => {
     setReview(getReviewFromStorage());
+    setLoading(false);
   }, []);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveSlide((prev) => (prev + 1) % sliderImages.length);
-    }, 3500);
-    return () => clearInterval(timer);
-  }, [sliderImages.length]);
 
   const onBack = () => navigate(-1);
 
@@ -509,44 +362,43 @@ function ReviewPage() {
     setSaved(true);
   };
 
-  const onPrintAndPay = async () => {
-    await generatePermitPDF();
+  const onDownloadPDF = async () => {
+    if (!permitRef.current) return;
+    const canvas = await html2canvas(permitRef.current, {
+      scale: 3,
+      useCORS: true,
+      logging: false,
+      backgroundColor: "#ffffff",
+    });
+    const imgData  = canvas.toDataURL("image/png");
+    const doc      = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const imgWidth = 210;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    doc.addImage(imgData, "PNG", 0, 0, imgWidth, Math.min(imgHeight, 297));
+    doc.save(`eILP-${Date.now()}.pdf`);
   };
 
-  const applicant = review?.applicant || {};
-
-  // ── Background slider (shared) ──
-  const BgSlider = () => (
-    <div className="review-bg-slider">
-      {sliderImages.map((image, index) => (
-        <div
-          key={index}
-          className={`review-bg-slide ${index === activeSlide ? "active" : ""}`}
-          style={{ backgroundImage: `url(${image})` }}
-        />
-      ))}
-      <div className="review-bg-overlay" />
-      <div className="review-bg-blur" />
-      <div className="review-bg-glow review-bg-glow-1" />
-      <div className="review-bg-glow review-bg-glow-2" />
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="review-shell">
+        <div className="review-card review-empty-card">
+          <p className="review-hero-text">Loading…</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!review) {
     return (
       <div className="review-shell">
-        <BgSlider />
         <div className="review-card review-empty-card">
           <span className="review-label">Inner Line Permit</span>
           <h1>No submission data found</h1>
           <p className="review-hero-text">
-            Please complete the ILP form first, then come back here to review
-            your application.
+            Please complete the ILP form first, then come back here to review your application.
           </p>
           <div className="review-actions">
-            <button className="review-button primary" onClick={onBack}>
-              Go Back
-            </button>
+            <button className="review-button primary" onClick={onBack}>Go Back</button>
           </div>
         </div>
       </div>
@@ -554,165 +406,39 @@ function ReviewPage() {
   }
 
   return (
-    <div ref={contentRef} className="review-shell">
-      <BgSlider />
+    <div className="review-shell">
 
-      <div className="review-card">
-        {/* ── Top bar ── */}
+      {/* ── Page header ── */}
+      <div className="review-card" style={{ marginBottom: 16 }}>
         <div className="review-topbar">
           <div>
             <span className="review-label">Inner Line Permit</span>
-            <h1>Review submitted data</h1>
+            <h1>Review your eILP</h1>
             <p className="review-hero-text">
-              Verify all application details before saving, printing, or moving
-              ahead with your process.
+              Verify all details below — this is exactly how your permit will be printed.
             </p>
           </div>
-          <div className="review-topbar-side">
-            <div className="status-tag">Ready to review</div>
-            <div className="review-slider-dots">
-              {sliderImages.map((_, index) => (
-                <span
-                  key={index}
-                  className={`review-dot ${index === activeSlide ? "active" : ""}`}
-                />
-              ))}
-            </div>
-          </div>
+          <div className="status-tag">Ready to review</div>
         </div>
+      </div>
 
-        {/* ── eILP Permit Preview Toggle ── */}
-        <div style={{ marginBottom: 16 }}>
-          <button
-            className={`review-button ${showPermit ? "save" : "primary"}`}
-            style={{ marginBottom: 0 }}
-            onClick={() => setShowPermit((v) => !v)}
-          >
-            {showPermit ? "▲ Hide eILP Permit Preview" : "▼ Show eILP Permit Preview"}
-          </button>
+      {/* ── Permit card (what you see = what you print) ── */}
+      <div className="review-card" style={{ padding: 0, overflow: "auto" }}>
+        <div ref={permitRef}>
+          <EilpPermitCard review={review} />
         </div>
+      </div>
 
-        {showPermit && (
-          <div style={{ marginBottom: 24, overflowX: "auto" }}>
-            <div ref={permitRef} style={{ display: "inline-block", minWidth: 620, background: "#fff", padding: 12 }}>
-              <EilpPermitCard review={review} />
-            </div>
-          </div>
-        )}
-
-        {/* ── Original review grid (unchanged) ── */}
-        <div className="review-grid">
-          <section className="review-panel">
-            <h2>Applicant Details</h2>
-            <ul className="review-list">
-              <li>
-                <span>Full Name</span>
-                <strong>{applicant.name || "-"}</strong>
-              </li>
-              <li>
-                <span>Mobile</span>
-                <strong>{applicant.mobile || "-"}</strong>
-              </li>
-              <li>
-                <span>Email</span>
-                <strong>{applicant.email || "-"}</strong>
-              </li>
-              <li>
-                <span>Gender</span>
-                <strong>{applicant.gender || "-"}</strong>
-              </li>
-              <li>
-                <span>Date of Birth</span>
-                <strong>{applicant.dob || "-"}</strong>
-              </li>
-              <li>
-                <span>Aadhaar</span>
-                <strong>{applicant.aadhaar || "-"}</strong>
-              </li>
-              <li>
-                <span>Citizenship</span>
-                <strong>{applicant.citizenship || "India"}</strong>
-              </li>
-              <li>
-                <span>Address</span>
-                <strong>{applicant.address || "-"}</strong>
-              </li>
-              <li>
-                <span>State</span>
-                <strong>{applicant.state || "-"}</strong>
-              </li>
-              <li>
-                <span>District</span>
-                <strong>{applicant.district || "-"}</strong>
-              </li>
-              <li>
-                <span>Pincode</span>
-                <strong>{applicant.pincode || "-"}</strong>
-              </li>
-            </ul>
-          </section>
-
-          <section className="review-panel">
-            <h2>Family Members</h2>
-
-            {review?.members?.length ? (
-              <div className="review-members">
-                {review.members.map((member, index) => (
-                  <div className="member-card" key={index}>
-                    <div className="member-card-top">
-                      <div className="member-chip">Member {index + 1}</div>
-                      <div className="member-heading">
-                        {member.name || "Unnamed member"}
-                      </div>
-                    </div>
-                    <div className="member-detail">
-                      <strong>Relation:</strong> {member.relation || "-"}
-                    </div>
-                    <div className="member-detail">
-                      <strong>Mobile:</strong> {member.mobile || "-"}
-                    </div>
-                    <div className="member-detail">
-                      <strong>Email:</strong> {member.email || "-"}
-                    </div>
-                    <div className="member-detail">
-                      <strong>Aadhaar:</strong> {member.aadhar || "-"}
-                    </div>
-                    <div className="member-detail">
-                      <strong>Address:</strong> {member.address || "-"}
-                    </div>
-                    <div className="member-detail">
-                      <strong>State:</strong> {member.state || "-"}
-                    </div>
-                    <div className="member-detail">
-                      <strong>District:</strong> {member.district || "-"}
-                    </div>
-                    <div className="member-detail">
-                      <strong>Pincode:</strong> {member.pincode || "-"}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="review-note">No members were added.</p>
-            )}
-          </section>
-        </div>
-
-        {/* ── Actions ── */}
+      {/* ── Actions ── */}
+      <div className="review-card" style={{ marginTop: 16 }}>
         <div className="review-actions">
-          <button className="review-button secondary" onClick={onBack}>
-            Back
-          </button>
-          <button className="review-button save" onClick={onSave}>
-            Save Review
-          </button>
-          <button className="review-button primary" onClick={onPrintAndPay}>
-            Print / Download PDF
-          </button>
+          <button className="review-button secondary" onClick={onBack}>Back</button>
+          <button className="review-button save"      onClick={onSave}>Save</button>
+          <button className="review-button primary"   onClick={onDownloadPDF}>Print / Download PDF</button>
         </div>
-
         {saved && <p className="review-saved">Application saved locally.</p>}
       </div>
+
     </div>
   );
 }
