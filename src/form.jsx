@@ -8,6 +8,11 @@ const Form = () => {
   const [step, setStep] = useState(1);
   const [aadhaar, setAadhaar] = useState("");
   const [purpose, setPurpose] = useState("");
+  const [visitFrom, setVisitFrom] = useState("");
+  const [visitTo, setVisitTo] = useState("");
+  const [vehicleTravel, setVehicleTravel] = useState("N/A");
+  const [vehicleNumber, setVehicleNumber] = useState("");
+  
 
   const purposeOptions = [
     "Tourism",
@@ -40,6 +45,7 @@ const Form = () => {
     state: "",
     district: "",
     pincode: "",
+    photoDataUrl: "",
   };
 
   const [mainForm, setMainForm] = useState(emptyMember);
@@ -92,6 +98,37 @@ const Form = () => {
       ...mainForm,
       [name]: value,
     });
+  };
+
+  const handleMainPhotoChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type?.startsWith("image/")) {
+      alert("Please upload an image file");
+      e.target.value = "";
+      return;
+    }
+
+    // keep localStorage payload reasonable
+    const maxBytes = 1024 * 1024; // 1MB
+    if (file.size > maxBytes) {
+      alert("Image too large. Please upload an image under 1MB.");
+      e.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setMainForm((prev) => ({
+        ...prev,
+        photoDataUrl: typeof reader.result === "string" ? reader.result : "",
+      }));
+    };
+    reader.onerror = () => {
+      alert("Failed to read image. Please try again.");
+    };
+    reader.readAsDataURL(file);
   };
 
   // MEMBER CHANGE
@@ -188,11 +225,7 @@ const Form = () => {
 
   // FINAL SUBMIT
   const handleFinalSubmit = () => {
-    if (!captchaValue) {
-      alert("Please verify reCAPTCHA");
-      return;
-    }
-
+   
     const data = {
       applicant: { ...mainForm, aadhaar, purpose, visitFrom, visitTo, vehicleTravel, vehicleNumber },
       members,
@@ -268,6 +301,18 @@ const Form = () => {
           <input value="India" readOnly />
           <label className="lable">Aadhaar Number</label>
           <input value={aadhaar} readOnly />
+
+          <label className="lable">Upload Photo</label>
+          <input type="file" accept="image/*" onChange={handleMainPhotoChange} />
+          {mainForm.photoDataUrl ? (
+            <div style={{ marginTop: 8 }}>
+              <img
+                src={mainForm.photoDataUrl}
+                alt="Applicant preview"
+                style={{ width: 110, height: 130, objectFit: "cover", border: "1px solid #bbb" }}
+              />
+            </div>
+          ) : null}
 
           <label className="lable">Address</label>
           <textarea name="address" placeholder="Address" value={mainForm.address} onChange={handleMainChange} />
@@ -350,10 +395,6 @@ const Form = () => {
 
           <button type="submit">Add Members</button>
 
-          <ReCAPTCHA
-            sitekey="6LeWUaYsAAAAAGuiMsz11Pry2dHA2DtrHVle89km"
-            onChange={(value) => setCaptchaValue(value)}
-          />
 
           <button type="button" onClick={handleFinalSubmit}>Submit</button>
         </form>
